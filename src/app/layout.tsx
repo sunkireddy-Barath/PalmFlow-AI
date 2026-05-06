@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { WalletContextProvider } from "@/components/wallet/WalletContextProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,13 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-screen bg-neural-dark text-foreground selection:bg-brand-primary/30">
-        <WalletContextProvider>
-          <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay z-50"></div>
-          <Navbar />
-          <main className="pt-20 px-6 min-h-screen">
-            {children}
-          </main>
-        </WalletContextProvider>
+        <QueryProvider>
+          <WalletContextProvider>
+            <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay z-50"></div>
+            <Navbar />
+            <main className="pt-20 px-6 min-h-screen">
+              {children}
+            </main>
+          </WalletContextProvider>
+        </QueryProvider>
       </body>
     </html>
   );
