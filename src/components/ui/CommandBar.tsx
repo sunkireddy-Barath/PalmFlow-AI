@@ -32,10 +32,10 @@ export const CommandBar = () => {
 
     try {
       // Trigger AI Workflow API
-      const res = await fetch('/api/workflow/execute', {
+      const res = await fetch('/api/command/v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: currentInput, agentId: 'product-ai' }), // Defaulting to Product AI
+        body: JSON.stringify({ prompt: currentInput }),
       });
       
       const data = await res.json();
