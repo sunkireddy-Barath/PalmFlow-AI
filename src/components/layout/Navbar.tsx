@@ -9,6 +9,7 @@ import { Zap, LayoutDashboard, Users, Repeat, Shield } from 'lucide-react';
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'AI Workforce', href: '/agents', icon: Users },
+  { name: 'Neural Store', href: '/marketplace', icon: ShoppingCart },
   { name: 'Streaming', href: '/streaming', icon: Repeat },
   { name: 'Policy', href: '/policy', icon: Shield },
 ];
