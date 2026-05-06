@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Zap, CheckCircle2, MoreVertical, Play, Pause, Settings } from 'lucide-react';
+import { Activity, Zap, CheckCircle2, MoreVertical, Play, Pause, Settings, ShieldCheck } from 'lucide-react';
 
 interface AgentCardProps {
   name: string;
@@ -35,8 +35,11 @@ export function AgentCard({ name, role, status, budget, spent, tasks, efficiency
 
       <div className="flex items-start justify-between relative z-10">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10 shadow-inner group-hover:border-brand-primary/30 transition-all">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10 shadow-inner group-hover:border-brand-primary/30 transition-all relative">
             <Activity className="w-7 h-7 text-brand-primary" />
+            <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-brand-secondary text-[8px] font-black text-white border border-brand-secondary/50">
+              {getCreditRating(efficiency)}
+            </div>
           </div>
           <div>
             <h3 className="text-xl font-bold text-white tracking-tight">{name}</h3>
@@ -62,7 +65,7 @@ export function AgentCard({ name, role, status, budget, spent, tasks, efficiency
         </div>
         <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
           <div className="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-            <Activity className="w-3 h-3" /> Efficiency
+            <ShieldCheck className="w-3 h-3" /> Trust Score
           </div>
           <div className={`text-lg font-bold tracking-tight ${efficiencyColor}`}>{efficiency}%</div>
         </div>

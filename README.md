@@ -1,41 +1,57 @@
-PalmFlow AI
-Autonomous AI Treasury & Payment Network Powered by PUSD
+# 🌴 PalmFlow AI
+### Autonomous AI Treasury & Payment Network Powered by PUSD
 
-PalmFlow AI is an autonomous financial operating system built on Solana using the non-freezable stablecoin Palm USD (PUSD). It enables AI agents, businesses, freelancers, and decentralized applications to manage payments, treasury operations, and financial workflows automatically without relying on traditional banking infrastructure.
+**PalmFlow AI** is a next-generation autonomous financial operating system built on Solana using **Palm USD (PUSD)**, a non-freezable and censorship-resistant stablecoin.
 
-The platform introduces a new economy where AI agents can independently earn revenue, negotiate services, allocate budgets, pay contributors, manage subscriptions, and optimize treasury strategies in real time using PUSD.
+The platform enables AI agents, businesses, and decentralized applications to autonomously manage treasury, execute real-time global payments, and optimize capital allocation without traditional banking intermediaries.
 
-Unlike traditional stablecoins that can freeze wallets or block transactions, PUSD provides censorship-resistant and unstoppable financial infrastructure. PalmFlow AI leverages this capability to create autonomous and borderless payment systems for the future of AI-driven businesses.
+---
 
-The system combines:
+## 🚀 Vision
+In the future, the majority of economic participants will be machines. PalmFlow AI creates the financial infrastructure for this **Autonomous AI Economy**. We transform AI from passive assistants into active economic participants capable of:
+- Owning on-chain wallets
+- Managing multi-million dollar treasuries
+- Negotiating and paying for services (AI-to-AI)
+- Optimizing yield and capital efficiency
 
-AI-powered treasury automation
-Real-time stablecoin payments
-Cross-border freelancer payouts
-Autonomous AI-to-AI transactions
-Yield optimization for idle treasury funds
-On-chain financial analytics and reputation systems
+## 💎 Core Innovation: Financial Identity for AI
+Every AI agent in PalmFlow AI is a first-class citizen on the Solana blockchain.
+- **Autonomous Wallets**: Each agent has its own unique Solana address.
+- **Neural Governance**: Policy-based guardrails ensure agents operate within human-defined laws.
+- **Trust Scoring**: Reputation-based credit system (AAA-C) for every machine participant.
 
-Businesses can create AI teams such as:
+---
 
-Product Manager AI
-Marketing AI
-Developer AI
-Analyst AI
+## 🛠️ Tech Stack
+- **Frontend**: Next.js 15, Tailwind CSS 4, Framer Motion, Recharts.
+- **Backend**: Node.js 22, Prisma ORM, Supabase (PostgreSQL).
+- **Blockchain**: Solana Devnet, PUSD Stablecoin, Web3.js.
+- **AI Engine**: OpenAI GPT-4o Orchestration.
 
-Each AI agent operates with its own wallet, spending permissions, treasury policies, and financial responsibilities. For example, a Marketing AI can autonomously purchase advertisements, a Developer AI can pay for APIs and cloud services, and an Analyst AI can acquire datasets or analytical tools — all using PUSD on Solana.
+---
 
-PalmFlow AI also supports:
+## 🌟 Key Features
+### 1. Neural Advisor
+Strategic AI-driven analytics that analyze live treasury data to provide real-time financial recommendations.
 
-Streaming salaries and instant payroll
-Automated treasury balancing
-AI-managed subscription billing
-Decentralized freelancer marketplaces
-Emergency-resistant global payments
-Smart risk controls and spending limits
+### 2. Streaming Payroll
+Per-second salary streaming logic that accrues earnings second-by-second for global contributors.
 
-The platform aims to become:
+### 3. Agent Factory
+Spawn specialized AI agents (Product, Marketing, Treasury) on-chain with instant wallet initialization.
 
-“The Financial Operating System for Autonomous AI Businesses.”
+### 4. Risk Sentinel
+24/7 autonomous monitoring that auto-locks the treasury if suspicious activity is detected.
 
-By combining AI agents, decentralized finance, programmable treasury management, and non-custodial stablecoin infrastructure, PalmFlow AI creates a scalable foundation for the next generation of autonomous digital economies.
+---
+
+## ⚡ Getting Started
+1. **Clone the repository**
+2. **Install dependencies**: `npm install`
+3. **Setup environment**: Add your `DATABASE_URL`, `OPENAI_API_KEY`, and `PUSD_AUTHORITY_KEY` to `.env`.
+4. **Run development server**: `npm run dev`
+
+---
+
+## 🏁 Final Tagline
+**"Powering the Autonomous AI Economy with Unstoppable Stablecoin Infrastructure."**
