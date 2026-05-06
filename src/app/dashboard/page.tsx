@@ -21,14 +21,16 @@ import { useAgents } from '@/hooks/useAgents';
 import { useTreasury } from '@/hooks/useTreasury';
 import { useBlockchain } from '@/components/providers/BlockchainProvider';
 import { useInsights } from '@/hooks/useInsights';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 export default function DashboardPage() {
   const { data: agents, isLoading: agentsLoading } = useAgents();
   const { data: treasury, isLoading: treasuryLoading } = useTreasury();
   const { data: insights, isLoading: insightsLoading } = useInsights();
+  const { data: portfolio, isLoading: portfolioLoading } = usePortfolio();
   const { isSyncing } = useBlockchain();
 
-  const isLoading = agentsLoading || treasuryLoading || insightsLoading;
+  const isLoading = agentsLoading || treasuryLoading || insightsLoading || portfolioLoading;
 
   if (isLoading) {
     return (
@@ -132,6 +134,27 @@ export default function DashboardPage() {
           header={<TreasuryChart />}
           className="md:col-span-2"
           icon={<TrendingUp className="h-4 w-4 text-brand-primary" />}
+        />
+        <BentoGridItem
+          title="Universal Portfolio"
+          description="Live treasury breakdown across Solana."
+          header={
+            <div className="space-y-3">
+              {portfolio?.map((asset: any) => (
+                <div key={asset.symbol} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${asset.symbol === 'PUSD' ? 'bg-brand-primary' : asset.symbol === 'SOL' ? 'bg-purple-400' : 'bg-blue-400'}`} />
+                    <span className="text-xs font-bold text-white">{asset.name}</span>
+                  </div>
+                  <div className="text-xs font-mono font-bold text-slate-300">
+                    {asset.amount.toLocaleString()} <span className="text-[10px] text-slate-500 uppercase">{asset.symbol}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+          className="md:col-span-1"
+          icon={<Wallet className="h-4 w-4 text-brand-primary" />}
         />
         <BentoGridItem
           title="Neural Advisor"
