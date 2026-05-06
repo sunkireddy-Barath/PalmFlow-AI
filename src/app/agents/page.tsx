@@ -5,9 +5,11 @@ import { AgentCard } from '@/components/dashboard/AgentCard';
 import { Plus, Search, Filter, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAgents } from '@/hooks/useAgents';
+import { DeployAgentModal } from '@/components/dashboard/DeployAgentModal';
 
 export default function AgentsPage() {
   const { data: agents, isLoading, error } = useAgents();
+  const [isDeployModalOpen, setIsDeployModalOpen] = React.useState(false);
 
   if (isLoading) {
     return (
@@ -36,7 +38,10 @@ export default function AgentsPage() {
           <button className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-all">
             <Filter className="w-5 h-5" />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary text-neural-dark text-sm font-bold hover:bg-brand-primary/80 transition-all shadow-lg shadow-brand-primary/20">
+          <button 
+            onClick={() => setIsDeployModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary text-neural-dark text-sm font-bold hover:bg-brand-primary/80 transition-all shadow-lg shadow-brand-primary/20"
+          >
             <Plus className="w-4 h-4" />
             Deploy Agent
           </button>
@@ -63,7 +68,10 @@ export default function AgentsPage() {
           </motion.div>
         ))}
         
-        <button className="border-2 border-dashed border-white/10 rounded-3xl p-12 flex flex-col items-center justify-center gap-4 text-slate-500 hover:border-brand-primary/30 hover:text-brand-primary transition-all group">
+        <button 
+          onClick={() => setIsDeployModalOpen(true)}
+          className="border-2 border-dashed border-white/10 rounded-3xl p-12 flex flex-col items-center justify-center gap-4 text-slate-500 hover:border-brand-primary/30 hover:text-brand-primary transition-all group"
+        >
           <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-brand-primary/10 transition-all">
             <Plus className="w-8 h-8" />
           </div>
@@ -73,6 +81,11 @@ export default function AgentsPage() {
           </div>
         </button>
       </div>
+
+      <DeployAgentModal 
+        isOpen={isDeployModalOpen} 
+        onClose={() => setIsDeployModalOpen(false)} 
+      />
     </div>
   );
 }
