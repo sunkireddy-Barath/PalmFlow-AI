@@ -47,9 +47,22 @@ export const policyService = {
       // Example: Spending Limit Check
       if (policy.type === 'spending_limit' || policy.type === 'global_limit') {
         if (amount > policy.value) {
+          const reason = `Action blocked by Policy: "${policy.name}" (${amount} exceeds limit of ${policy.value})`;
+          
+          // Log the violation (using the Transaction model with a 'violation' status)
+          await prisma.transaction.create({
+            data: {
+              amount,
+              type: 'policy_violation',
+              description: reason,
+              agentId: agentId,
+              status: 'blocked'
+            }
+          });
+
           return { 
             allowed: false, 
-            reason: `Action blocked by Policy: "${policy.name}" (${amount} exceeds limit of ${policy.value})` 
+            reason: reason 
           };
         }
       }

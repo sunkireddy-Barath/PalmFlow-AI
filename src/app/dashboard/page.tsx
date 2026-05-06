@@ -13,7 +13,8 @@ import {
   Plus,
   Loader2,
   Sparkles,
-  BrainCircuit
+  BrainCircuit,
+  Repeat
 } from 'lucide-react';
 import { TreasuryChart } from '@/components/dashboard/TreasuryChart';
 import { motion } from 'framer-motion';
@@ -159,6 +160,29 @@ export default function DashboardPage() {
           }
           className="md:col-span-1"
           icon={<BrainCircuit className="h-4 w-4 text-brand-primary" />}
+        />
+        <BentoGridItem
+          title="M2M Commerce Feed"
+          description="Live inter-agent financial coordination."
+          header={
+            <div className="space-y-2">
+              {[
+                { from: 'Product AI', to: 'Marketing AI', action: 'Hired', amount: 500 },
+                { from: 'Dev AI', to: 'Security AI', action: 'Requested Audit', amount: 200 },
+              ].map((collab, i) => (
+                <div key={i} className="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="text-[10px] font-bold text-white">{collab.from}</div>
+                    <ArrowUpRight className="w-3 h-3 text-brand-primary" />
+                    <div className="text-[10px] font-bold text-brand-secondary">{collab.to}</div>
+                  </div>
+                  <div className="text-[10px] font-mono text-brand-primary">+{collab.amount} PUSD</div>
+                </div>
+              ))}
+            </div>
+          }
+          className="md:col-span-1"
+          icon={<Repeat className="h-4 w-4 text-brand-primary" />}
         />
         <BentoGridItem
           title="Live AI Feed"
