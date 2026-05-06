@@ -11,20 +11,24 @@ import {
   Users,
   ArrowUpRight,
   Plus,
-  Loader2
+  Loader2,
+  Sparkles,
+  BrainCircuit
 } from 'lucide-react';
 import { TreasuryChart } from '@/components/dashboard/TreasuryChart';
 import { motion } from 'framer-motion';
 import { useAgents } from '@/hooks/useAgents';
 import { useTreasury } from '@/hooks/useTreasury';
 import { useBlockchain } from '@/components/providers/BlockchainProvider';
+import { useInsights } from '@/hooks/useInsights';
 
 export default function DashboardPage() {
   const { data: agents, isLoading: agentsLoading } = useAgents();
   const { data: treasury, isLoading: treasuryLoading } = useTreasury();
+  const { data: insights, isLoading: insightsLoading } = useInsights();
   const { isSyncing } = useBlockchain();
 
-  const isLoading = agentsLoading || treasuryLoading;
+  const isLoading = agentsLoading || treasuryLoading || insightsLoading;
 
   if (isLoading) {
     return (
@@ -130,19 +134,31 @@ export default function DashboardPage() {
           icon={<TrendingUp className="h-4 w-4 text-brand-primary" />}
         />
         <BentoGridItem
-          title="Security Engine"
-          description="Real-time risk monitoring and anomaly detection active."
+          title="Neural Advisor"
+          description="Strategic AI-driven treasury optimization."
           header={
-            <div className="flex-1 flex flex-col justify-center items-center space-y-4">
-              <div className="w-24 h-24 rounded-full border-4 border-brand-primary/20 border-t-brand-primary animate-spin" />
-              <div className="text-center">
-                <div className="text-brand-primary font-mono text-sm">SCANNING...</div>
-                <div className="text-slate-400 text-xs">All Systems Nominal</div>
+            <div className="space-y-3">
+              {insights?.insights.map((insight: any, i: number) => (
+                <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-start gap-3 group hover:border-brand-primary/20 transition-all">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    insight.impact === 'positive' ? 'bg-green-500/10 text-green-500' : 'bg-brand-primary/10 text-brand-primary'
+                  }`}>
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white tracking-tight">{insight.title}</div>
+                    <div className="text-[10px] text-slate-500 leading-tight mt-1">{insight.desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div className="mt-2 p-3 rounded-xl bg-brand-primary/5 border border-brand-primary/10 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">Recommended Action</span>
+                <span className="text-[10px] text-white font-mono">{insights?.strategicAction}</span>
               </div>
             </div>
           }
           className="md:col-span-1"
-          icon={<ShieldCheck className="h-4 w-4 text-brand-primary" />}
+          icon={<BrainCircuit className="h-4 w-4 text-brand-primary" />}
         />
         <BentoGridItem
           title="Live AI Feed"
