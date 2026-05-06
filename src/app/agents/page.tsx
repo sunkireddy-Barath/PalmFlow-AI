@@ -2,49 +2,21 @@
 
 import React from 'react';
 import { AgentCard } from '@/components/dashboard/AgentCard';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const agents = [
-  {
-    name: 'Product AI',
-    role: 'Treasury Strategy & Allocation',
-    status: 'active' as const,
-    budget: '50,000',
-    spent: '12,450',
-    tasks: 124,
-    efficiency: 98,
-  },
-  {
-    name: 'Marketing AI',
-    role: 'Autonomous Ad Buying & Growth',
-    status: 'executing' as const,
-    budget: '25,000',
-    spent: '18,200',
-    tasks: 89,
-    efficiency: 94,
-  },
-  {
-    name: 'Developer AI',
-    role: 'API Management & Infrastructure',
-    status: 'active' as const,
-    budget: '15,000',
-    spent: '3,120',
-    tasks: 45,
-    efficiency: 99,
-  },
-  {
-    name: 'Analyst AI',
-    role: 'Data Acquisition & Risk Scoring',
-    status: 'paused' as const,
-    budget: '10,000',
-    spent: '2,500',
-    tasks: 32,
-    efficiency: 91,
-  },
-];
+import { useAgents } from '@/hooks/useAgents';
 
 export default function AgentsPage() {
+  const { data: agents, isLoading, error } = useAgents();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-12 h-12 text-brand-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -72,14 +44,22 @@ export default function AgentsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agents.map((agent, i) => (
+        {agents?.map((agent: any, i: number) => (
           <motion.div
-            key={agent.name}
+            key={agent.id}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.1 }}
           >
-            <AgentCard {...agent} />
+            <AgentCard 
+              name={agent.name}
+              role={agent.role}
+              status={agent.status}
+              budget={agent.budget.toLocaleString()}
+              spent={agent.spent.toLocaleString()}
+              tasks={agent.tasksCount}
+              efficiency={agent.efficiency}
+            />
           </motion.div>
         ))}
         
