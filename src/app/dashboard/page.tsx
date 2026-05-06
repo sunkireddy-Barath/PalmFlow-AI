@@ -17,10 +17,12 @@ import { TreasuryChart } from '@/components/dashboard/TreasuryChart';
 import { motion } from 'framer-motion';
 import { useAgents } from '@/hooks/useAgents';
 import { useTreasury } from '@/hooks/useTreasury';
+import { useBlockchain } from '@/components/providers/BlockchainProvider';
 
 export default function DashboardPage() {
   const { data: agents, isLoading: agentsLoading } = useAgents();
   const { data: treasury, isLoading: treasuryLoading } = useTreasury();
+  const { isSyncing } = useBlockchain();
 
   const isLoading = agentsLoading || treasuryLoading;
 
@@ -73,6 +75,15 @@ export default function DashboardPage() {
             <span className="text-xs px-2 py-0.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-primary font-mono">
               {treasury?.address.slice(0, 4)}...{treasury?.address.slice(-4)}
             </span>
+            {isSyncing && (
+              <motion.span 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-[10px] text-brand-primary font-bold uppercase tracking-tighter animate-pulse"
+              >
+                Syncing Ledger...
+              </motion.span>
+            )}
           </div>
         </div>
         <div className="flex gap-4">

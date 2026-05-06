@@ -4,6 +4,8 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { WalletContextProvider } from "@/components/wallet/WalletContextProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
+import { CommandBar } from "@/components/ui/CommandBar";
+import { BlockchainProvider } from "@/components/providers/BlockchainProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,11 +32,14 @@ export default function RootLayout({
       <body className="min-h-screen bg-neural-dark text-foreground selection:bg-brand-primary/30">
         <QueryProvider>
           <WalletContextProvider>
-            <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay z-50"></div>
-            <Navbar />
-            <main className="pt-20 px-6 min-h-screen">
-              {children}
-            </main>
+            <BlockchainProvider>
+              <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay z-50"></div>
+              <Navbar />
+              <main className="pt-24 px-6 min-h-screen">
+                {children}
+              </main>
+              <CommandBar />
+            </BlockchainProvider>
           </WalletContextProvider>
         </QueryProvider>
       </body>
