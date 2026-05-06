@@ -16,6 +16,7 @@ interface AgentCardProps {
   tasks: number;
   efficiency: number;
   avatar?: string;
+  onCollaborate?: () => void;
 }
 
 const statusColors = {
@@ -25,7 +26,7 @@ const statusColors = {
   paused: 'text-orange-400 bg-orange-400/10',
 };
 
-export function AgentCard({ name, role, status, budget, spent, tasks, efficiency }: AgentCardProps) {
+export function AgentCard({ name, role, status, budget, spent, tasks, efficiency, onCollaborate }: AgentCardProps) {
   return (
     <motion.div 
       whileHover={{ y: -5 }}
@@ -89,9 +90,17 @@ export function AgentCard({ name, role, status, budget, spent, tasks, efficiency
       </div>
 
       <div className="mt-6 flex gap-2">
-        <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all">
-          <Settings className="w-3.5 h-3.5" /> Configure
-        </button>
+        <div className="flex flex-1 gap-2">
+          <button className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/10 transition-all">
+            Manage
+          </button>
+          <button 
+            onClick={onCollaborate}
+            className="flex-1 py-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-xs font-bold text-brand-primary hover:bg-brand-primary/20 transition-all"
+          >
+            Collaborate
+          </button>
+        </div>
         <button className="px-4 py-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-brand-primary hover:bg-brand-primary/20 transition-all">
           {status === 'paused' ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
         </button>
