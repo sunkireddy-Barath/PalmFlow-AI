@@ -1,7 +1,7 @@
-import { generateAgentResponse } from '@/lib/ai/OpenAIProvider';
 import { transactionService } from '@/server/services/transaction.service';
 import { agentService } from '@/server/services/agent.service';
 import { solanaService } from '@/server/services/solana.service';
+import { policyService } from '@/server/services/policy.service';
 
 export async function POST(req: Request) {
   try {
@@ -19,9 +19,20 @@ export async function POST(req: Request) {
       budget: agent.budget - agent.spent,
     });
 
-    // 3. Execute Actions (REAL SOLANA TRANSACTIONS)
-    let txHash = null;
+    // 3. ENFORCE POLICIES
     if (aiResponse.action === 'payment') {
+      const validation = await policyService.validateAction('spending_limit', aiResponse.amount, agent.id);
+      
+      if (!validation.allowed) {
+        return NextResponse.json({ 
+          success: false, 
+          message: validation.reason,
+          reasoning: "Action blocked by security policy."
+        });
+      }
+    }
+
+    // 4. Execute Actions (REAL SOLANA TRANSACTIONS)
       // Execute REAL on-chain payment
       // For demo, we use a fixed test recipient or the agent's wallet
       const recipient = agent.walletAddress || 'FRnaJo8MyEzt7Hd6XRHaYeid71JyaACEVVWkvjp4G8wv';
