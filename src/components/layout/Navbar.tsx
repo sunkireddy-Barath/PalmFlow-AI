@@ -11,7 +11,7 @@ const navItems = [
   { name: 'AI Workforce', href: '/agents', icon: Users },
   { name: 'Neural Store', href: '/marketplace', icon: ShoppingCart },
   { name: 'Streaming', href: '/streaming', icon: Repeat },
-  { name: 'Policy', href: '/policy', icon: Shield },
+  { name: 'Neural Laws', href: '/policy', icon: Shield },
 ];
 
 export const Navbar = () => {
