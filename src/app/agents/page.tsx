@@ -120,6 +120,8 @@ export default function AgentsPage() {
                 spent={agent.spent.toLocaleString()}
                 tasks={agent.tasksCount}
                 efficiency={agent.efficiency}
+                pnl={agent.pnl}
+                rating={agent.rating}
               />
             </motion.div>
           ))}

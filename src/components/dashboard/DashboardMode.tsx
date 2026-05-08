@@ -246,6 +246,8 @@ export const DashboardMode = () => {
               spent={agent.spent.toLocaleString()}
               tasks={agent.tasksCount}
               efficiency={agent.efficiency}
+              pnl={agent.pnl}
+              rating={agent.rating}
             />
           ))}
         </div>

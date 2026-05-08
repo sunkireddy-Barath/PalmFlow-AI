@@ -24,18 +24,21 @@ export const reputationService = {
       score -= 30;
     }
 
-    // 4. Transaction Reliability (Success vs Failure)
-    const txCount = agent.transactions.length;
-    if (txCount > 10) score += 5;
-
-    // Cap at 100
+    // 4. Yield / P&L Bonus
+    // If agent is responsible for yield investments, increase rating
+    const yieldTx = agent.transactions.filter(t => t.type === 'yield_investment');
+    const pnlIncrease = yieldTx.length * 0.5; // Simulate 0.5% growth per harvest
+    
     const finalScore = Math.max(0, Math.min(100, score));
+    const newRating = Math.max(1, Math.min(5, 4 + (finalScore / 100)));
 
-    // We can store this in a new field if we want, or just return it
-    // For now, let's update the efficiency field to reflect the "Overall Trust Score"
     await prisma.agent.update({
       where: { id: agentId },
-      data: { efficiency: finalScore }
+      data: { 
+        efficiency: finalScore,
+        rating: newRating,
+        pnl: { increment: pnlIncrease }
+      }
     });
 
     return finalScore;

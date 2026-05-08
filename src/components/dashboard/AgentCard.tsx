@@ -12,9 +12,11 @@ interface AgentCardProps {
   spent: string;
   tasks: number;
   efficiency: number;
+  pnl?: number;
+  rating?: number;
 }
 
-export function AgentCard({ name, role, status, budget, spent, efficiency }: AgentCardProps) {
+export function AgentCard({ name, role, status, budget, spent, efficiency, pnl = 0, rating = 5.0 }: AgentCardProps) {
   const usagePct =
     (parseFloat(spent.replace(/,/g, '')) / parseFloat(budget.replace(/,/g, ''))) * 100;
   const isActive = status === 'active';
@@ -34,10 +36,13 @@ export function AgentCard({ name, role, status, budget, spent, efficiency }: Age
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center"
+            className="w-11 h-11 rounded-xl flex items-center justify-center relative"
             style={{ background: 'rgba(0,229,204,0.08)' }}
           >
             <Cpu className="w-5 h-5 text-accent-cyan" />
+            <div className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-md bg-black border border-white/10 text-[8px] font-black text-white">
+              {rating.toFixed(1)}
+            </div>
           </div>
           <div>
             <h3 className="text-base font-semibold text-white leading-tight">{name}</h3>
@@ -66,9 +71,14 @@ export function AgentCard({ name, role, status, budget, spent, efficiency }: Age
           className="p-3.5 rounded-xl"
           style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
         >
-          <div className="flex items-center gap-1.5 mb-2">
-            <Zap className="w-3 h-3 text-white/30" />
-            <span className="label-xs">Allocation</span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <Zap className="w-3 h-3 text-white/30" />
+              <span className="label-xs">Allocation</span>
+            </div>
+            {pnl > 0 && (
+              <span className="text-[10px] text-emerald-500 font-bold">+{pnl.toFixed(1)}%</span>
+            )}
           </div>
           <div className="text-lg font-semibold text-white tabular-nums leading-none">
             {budget}
