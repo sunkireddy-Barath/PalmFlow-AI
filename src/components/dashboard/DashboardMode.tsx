@@ -4,11 +4,12 @@ import React from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { AgentCard } from '@/components/dashboard/AgentCard';
 import { TreasuryChart } from '@/components/dashboard/TreasuryChart';
+import { PortfolioView } from '@/components/dashboard/PortfolioView';
 import { useAgents } from '@/hooks/useAgents';
 import { useTreasury } from '@/hooks/useTreasury';
 import {
   Wallet, Activity, BarChart3, Cpu, Plus, Zap,
-  ArrowUpRight, Search, Globe, TrendingUp
+  ArrowUpRight, Search, Globe, TrendingUp, ShieldCheck, Brain
 } from 'lucide-react';
 
 const container: Variants = {
@@ -152,19 +153,6 @@ export const DashboardMode = () => {
               </div>
               <p className="label-sm">Real-time protocol growth data</p>
             </div>
-            <div className="flex items-center gap-1">
-              {['1D', '1W', '1M', '1Y'].map(t => (
-                <button
-                  key={t}
-                  className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
-                  style={t === '1M'
-                    ? { background: 'rgba(255,255,255,0.1)', color: '#ffffff' }
-                    : { color: 'rgba(255,255,255,0.3)' }}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
           </div>
           <div className="flex-1 w-full">
             <TreasuryChart />
@@ -211,46 +199,67 @@ export const DashboardMode = () => {
                   </div>
                 </div>
               ))}
-              {(!agents || agents.flatMap((a: any) => a.transactions).length === 0) && (
-                <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                  <Activity className="w-6 h-6 text-white/10 mb-2" />
-                  <p className="text-[10px] text-white/30 uppercase tracking-widest">No activity detected</p>
-                </div>
-              )}
             </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Agents Section */}
-      <div className="space-y-5">
-        <motion.div variants={item} className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <div>
-            <h2 className="text-lg font-semibold text-white tracking-tight">Active Workforce</h2>
-            <p className="text-xs text-white/40 mt-0.5">Monitoring {agents?.length || 0} autonomous agents</p>
-          </div>
-          <button className="flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white transition-colors group">
-            View all
-            <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-          </button>
-        </motion.div>
+      {/* Institutional Insights Row */}
+      <div className="grid lg:grid-cols-12 gap-4">
+        {/* Workforce Section */}
+        <div className="lg:col-span-8 space-y-5">
+          <motion.div variants={item} className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            <div>
+              <h2 className="text-lg font-semibold text-white tracking-tight">Active Workforce</h2>
+              <p className="text-xs text-white/40 mt-0.5">Monitoring {agents?.length || 0} autonomous agents</p>
+            </div>
+            <button className="flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white transition-colors group">
+              View all
+              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </button>
+          </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {agents?.slice(0, 3).map((agent: any) => (
-            <AgentCard
-              key={agent.id}
-              name={agent.name}
-              role={agent.role}
-              status={agent.status}
-              budget={agent.budget.toLocaleString()}
-              spent={agent.spent.toLocaleString()}
-              tasks={agent.tasksCount}
-              efficiency={agent.efficiency}
-              pnl={agent.pnl}
-              rating={agent.rating}
-            />
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {agents?.slice(0, 3).map((agent: any) => (
+              <AgentCard
+                key={agent.id}
+                name={agent.name}
+                role={agent.role}
+                status={agent.status}
+                budget={agent.budget.toLocaleString()}
+                spent={agent.spent.toLocaleString()}
+                tasks={agent.tasksCount}
+                efficiency={agent.efficiency}
+                pnl={agent.pnl}
+                rating={agent.rating}
+              />
+            ))}
+          </div>
         </div>
+
+        {/* Portfolio Sidebar */}
+        <motion.div variants={item} className="lg:col-span-4 flex flex-col gap-4">
+          <div className="neural-card p-6 flex flex-col gap-5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(162,89,255,0.06) 0%, transparent 70%)', margin: '-16px -16px 0 0' }} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-purple-400" />
+                <h3 className="text-sm font-semibold text-white">Neural Sentiment</h3>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-purple-500/10 text-[10px] font-bold text-purple-400 uppercase tracking-widest">Optimistic</span>
+            </div>
+            <div className="flex items-end gap-3">
+              <div className="text-3xl font-semibold text-white tracking-tighter">84<span className="text-lg text-white/30 ml-1">/100</span></div>
+              <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium mb-1.5">
+                <TrendingUp className="w-3 h-3" /> +12%
+              </div>
+            </div>
+          </div>
+          
+          <div className="neural-card p-6 flex-1">
+            <PortfolioView />
+          </div>
+        </motion.div>
       </div>
     </motion.div>
   );

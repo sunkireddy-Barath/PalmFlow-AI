@@ -36,6 +36,40 @@ export const solanaService = {
   },
 
   /**
+   * Get the full portfolio of SOL and SPL tokens for a wallet
+   */
+  async getPortfolio(walletAddress: string) {
+    try {
+      const publicKey = new PublicKey(walletAddress);
+      
+      // 1. Get SOL Balance
+      const solBalance = await connection.getBalance(publicKey);
+      
+      // 2. Get SPL Token Accounts
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+        programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+      });
+
+      const tokens = tokenAccounts.value.map(account => {
+        const info = account.account.data.parsed.info;
+        return {
+          mint: info.mint,
+          amount: info.tokenAmount.uiAmount,
+          decimals: info.tokenAmount.decimals
+        };
+      }).filter(t => t.amount > 0);
+
+      return {
+        sol: solBalance / 1_000_000_000,
+        tokens: tokens
+      };
+    } catch (error) {
+      console.error('Error fetching portfolio:', error);
+      return { sol: 0, tokens: [] };
+    }
+  },
+
+  /**
    * Wait for a transaction to reach a certain commitment level
    */
   async waitForConfirmation(signature: string, commitment: 'confirmed' | 'finalized' = 'confirmed') {
