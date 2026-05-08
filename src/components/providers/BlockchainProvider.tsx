@@ -56,8 +56,22 @@ export const BlockchainProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     setupSubscription();
 
+    // --- SYSTEM HEARTBEAT ---
+    // Keep the autonomous protocol alive by triggering periodic audits and payroll updates
+    const heartbeatInterval = setInterval(async () => {
+      try {
+        await fetch('/api/system/heartbeat', { method: 'POST' });
+        // After heartbeat, refresh metrics
+        queryClient.invalidateQueries({ queryKey: ['treasury-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['streams'] });
+      } catch (err) {
+        console.warn('Heartbeat synchronization failed:', err);
+      }
+    }, 30000); // Every 30 seconds
+
     return () => {
       if (subscriptionId) connection.removeAccountChangeListener(subscriptionId);
+      clearInterval(heartbeatInterval);
     };
   }, [connection, queryClient]);
 

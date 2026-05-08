@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Cpu, Zap, Wallet, Shield, Loader2, Sparkles } from 'lucide-react';
+import { X, Cpu, Zap, Wallet, Shield, Loader2, Sparkles, CheckCircle2, ChevronRight, Target } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface DeployAgentModalProps {
@@ -11,10 +11,10 @@ interface DeployAgentModalProps {
 }
 
 const roles = [
-  { id: 'product', name: 'Product AI', icon: Cpu, desc: 'Manages roadmap and technical specifications.' },
-  { id: 'marketing', name: 'Marketing AI', icon: Zap, desc: 'Executes campaigns and handles social growth.' },
-  { id: 'treasury', name: 'Treasury AI', icon: Wallet, desc: 'Optimizes yield and manages capital allocation.' },
-  { id: 'security', name: 'Security AI', icon: Shield, desc: 'Monitors risk and enforces financial policies.' },
+  { id: 'product', name: 'Product AI', icon: Cpu, desc: 'Technical roadmaps & specs.' },
+  { id: 'marketing', name: 'Marketing AI', icon: Zap, desc: 'Social growth & campaigns.' },
+  { id: 'treasury', name: 'Treasury AI', icon: Wallet, desc: 'Yield & capital allocation.' },
+  { id: 'security', name: 'Security AI', icon: Shield, desc: 'Risk & financial policies.' },
 ];
 
 export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => {
@@ -49,6 +49,14 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
     }
   };
 
+  const handleClose = () => {
+    setStep(1);
+    setName('');
+    setSelectedRole('');
+    setBudget('1000');
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -57,119 +65,147 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            onClick={handleClose}
+            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
           />
           
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="w-full max-w-xl glass-panel rounded-[2.5rem] overflow-hidden border-white/5 shadow-2xl relative"
+            className="w-full max-w-xl bg-black border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl relative"
           >
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-white tracking-tight">Deploy AI Agent</h2>
-                  <p className="text-slate-500 text-sm">Scale your autonomous workforce on Solana</p>
+            <div className="absolute inset-0 noise-bg pointer-events-none opacity-[0.03]" />
+            
+            <div className="p-10 relative z-10">
+              <div className="flex items-center justify-between mb-10">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-semibold text-white tracking-tight leading-none">Deploy Agent</h2>
+                  <p className="text-white/35 text-xs mt-1">Configure your autonomous neural identity</p>
                 </div>
-                <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl text-slate-500 transition-all">
+                <button onClick={handleClose} className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-neutral-500 hover:text-white transition-all">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {step === 1 && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div className="grid grid-cols-2 gap-4">
                     {roles.map((role) => (
                       <button
                         key={role.id}
                         onClick={() => setSelectedRole(role.id)}
-                        className={`p-4 rounded-3xl border text-left transition-all group ${
+                        className={`p-6 rounded-[2rem] border text-left transition-all group relative overflow-hidden ${
                           selectedRole === role.id 
-                            ? 'bg-brand-primary/10 border-brand-primary/40' 
-                            : 'bg-white/[0.02] border-white/5 hover:border-white/10'
+                            ? 'bg-indigo-500/10 border-indigo-500/40' 
+                            : 'bg-white/[0.02] border-white/5 hover:border-white/20'
                         }`}
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-all ${
-                          selectedRole === role.id ? 'bg-brand-primary/20 text-brand-primary' : 'bg-white/5 text-slate-500 group-hover:text-white'
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-500 ${
+                          selectedRole === role.id ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-white/5 text-neutral-600 group-hover:text-white group-hover:scale-110'
                         }`}>
-                          <role.icon className="w-5 h-5" />
+                          <role.icon className="w-6 h-6" />
                         </div>
-                        <div className="font-bold text-sm text-white">{role.name}</div>
-                        <div className="text-[10px] text-slate-500 mt-1">{role.desc}</div>
+                        <div className="text-sm font-medium text-white">{role.name}</div>
+                        <div className="text-[10px] text-neutral-600 mt-2 font-medium leading-relaxed">{role.desc}</div>
+                        {selectedRole === role.id && (
+                          <motion.div layoutId="active-role" className="absolute top-4 right-4">
+                            <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+                          </motion.div>
+                        )}
                       </button>
                     ))}
                   </div>
                   <button 
                     disabled={!selectedRole}
                     onClick={() => setStep(2)}
-                    className="w-full py-4 rounded-2xl bg-brand-primary text-neural-dark font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"
+                    className="btn-primary w-full justify-center group"
                   >
-                    Continue
+                    Configure Identity <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               )}
 
               {step === 2 && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Agent Name</label>
-                      <input 
-                        type="text" 
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Atlas Prime"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-brand-primary/40 transition-all"
-                      />
+                <div className="space-y-8">
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <label className="text-xs font-medium text-white/40 ml-1">Agent Name</label>
+                      <div className="relative flex items-center">
+                        <Target className="absolute left-5 w-4 h-4 text-neutral-600" />
+                        <input 
+                          type="text" 
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. Atlas Prime"
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-accent-indigo/50 transition-all text-sm"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Initial PUSD Budget</label>
-                      <input 
-                        type="number" 
-                        value={budget}
-                        onChange={(e) => setBudget(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white focus:outline-none focus:border-brand-primary/40 transition-all font-mono"
-                      />
+                    <div className="space-y-3">
+                      <label className="text-xs font-medium text-white/40 ml-1">PUSD Budget</label>
+                      <div className="relative flex items-center">
+                        <Wallet className="absolute left-5 w-4 h-4 text-neutral-600" />
+                        <input 
+                          type="number" 
+                          value={budget}
+                          onChange={(e) => setBudget(e.target.value)}
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-accent-indigo/50 transition-all text-base font-semibold tabular-nums"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 flex items-start gap-3">
-                    <Wallet className="w-5 h-5 text-brand-primary mt-0.5" />
-                    <p className="text-[11px] text-brand-primary/80 leading-relaxed font-medium">
-                      Deploying this agent will automatically generate a new Solana wallet and fund it with 5% of the allocated budget from the treasury.
+                  
+                  <div className="p-6 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0">
+                      <Zap className="w-4 h-4 text-indigo-400 fill-current" />
+                    </div>
+                    <p className="text-[11px] text-neutral-400 leading-relaxed font-medium">
+                      Initializing this neural identity will generate a <span className="text-white font-bold">unique Solana vault</span>. 5% of the allocated budget will be transferred immediately for autonomous operations.
                     </p>
                   </div>
-                  <div className="flex gap-3">
-                    <button onClick={() => setStep(1)} className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Back</button>
+
+                  <div className="flex gap-4">
+                    <button onClick={() => setStep(1)} className="btn-secondary flex-1 justify-center">Back</button>
                     <button 
                       onClick={handleDeploy}
                       disabled={isDeploying}
-                      className="flex-[2] py-4 rounded-2xl bg-brand-primary text-neural-dark font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="btn-primary flex-[2] justify-center"
                     >
                       {isDeploying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                      {isProcessing ? 'Initializing Neural Link...' : 'Confirm Deployment'}
+                      {isDeploying ? 'Linking Neural Path...' : 'Confirm Injection'}
                     </button>
                   </div>
                 </div>
               )}
 
               {step === 3 && (
-                <div className="text-center py-8 space-y-6">
-                  <div className="w-20 h-20 rounded-full bg-brand-primary/20 flex items-center justify-center mx-auto border border-brand-primary/40 shadow-[0_0_30px_rgba(0,242,255,0.2)]">
-                    <CheckCircle2 className="w-10 h-10 text-brand-primary" />
+                <div className="text-center py-12 space-y-8">
+                  <div className="relative w-32 h-32 mx-auto">
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-full h-full rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.2)]"
+                    >
+                      <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+                    </motion.div>
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-0 border-2 border-dashed border-emerald-500/30 rounded-full"
+                    />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">Agent Deployed!</h3>
-                    <p className="text-slate-500 text-sm mt-2 leading-relaxed">
-                      Your AI agent has been initialized and its Solana wallet is now active on Devnet.
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-semibold text-white tracking-tight leading-none">Agent Deployed</h3>
+                    <p className="text-neutral-500 text-sm font-medium leading-relaxed max-w-[300px] mx-auto">
+                      Neural identity successfully injected. The autonomous wallet is now live on <span className="text-white font-black uppercase">Mainnet-Beta</span>.
                     </p>
                   </div>
                   <button 
-                    onClick={onClose}
-                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
+                    onClick={handleClose}
+                    className="btn-primary w-full justify-center"
                   >
-                    Enter Dashboard
+                    Enter Command Center
                   </button>
                 </div>
               )}
@@ -180,5 +216,3 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
     </AnimatePresence>
   );
 };
-
-import { CheckCircle2 } from 'lucide-react';

@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import '@solana/wallet-adapter-react-ui/styles.css';
 import { Navbar } from "@/components/layout/Navbar";
 import { WalletContextProvider } from "@/components/wallet/WalletContextProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { CommandBar } from "@/components/ui/CommandBar";
 import { BlockchainProvider } from "@/components/providers/BlockchainProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -22,23 +24,27 @@ export const metadata: Metadata = {
   description: "Autonomous AI Treasury & Payment Network Powered by PUSD on Solana.",
 };
 
+import { BottomDock } from "@/components/layout/BottomDock";
+import { TopHeader } from "@/components/layout/TopHeader";
+import { BackgroundSystem } from "@/components/ui/BackgroundSystem";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-screen bg-neural-dark text-foreground selection:bg-brand-primary/30">
+    <html lang="en" className={`${spaceGrotesk.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen antialiased selection:bg-accent-cyan/20 relative pb-32">
         <QueryProvider>
           <WalletContextProvider>
             <BlockchainProvider>
-              <div className="fixed inset-0 bg-[url('/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay z-50"></div>
-              <Navbar />
-              <main className="pt-24 px-6 min-h-screen">
+              <BackgroundSystem />
+              <TopHeader />
+              <main className="relative z-10 min-h-screen pt-20 px-6">
                 {children}
               </main>
-              <CommandBar />
+              <BottomDock />
             </BlockchainProvider>
           </WalletContextProvider>
         </QueryProvider>

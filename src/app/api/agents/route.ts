@@ -4,6 +4,24 @@ import { solanaService } from '@/server/services/solana.service';
 import { Keypair } from '@solana/web3.js';
 import { prisma } from '@/lib/prisma';
 
+export async function GET() {
+  try {
+    const agents = await prisma.agent.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+    return NextResponse.json(agents);
+  } catch (error) {
+    console.error('Failed to fetch agents:', error);
+    return NextResponse.json({ error: 'Failed to fetch agents' }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { name, role, budget } = await req.json();

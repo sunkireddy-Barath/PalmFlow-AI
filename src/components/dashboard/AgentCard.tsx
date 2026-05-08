@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Zap, CheckCircle2, MoreVertical, Play, Pause, Settings, ShieldCheck } from 'lucide-react';
+import { Cpu, Activity, Zap, Target } from 'lucide-react';
 
 interface AgentCardProps {
   name: string;
@@ -12,90 +12,118 @@ interface AgentCardProps {
   spent: string;
   tasks: number;
   efficiency: number;
-  avatar?: string;
-  onCollaborate?: () => void;
 }
 
-const statusColors: Record<string, string> = {
-  active: 'text-brand-primary bg-brand-primary/10',
-  executing: 'text-brand-secondary bg-brand-secondary/10',
-  paused: 'text-orange-400 bg-orange-400/10',
-};
-
-export function AgentCard({ name, role, status, budget, spent, tasks, efficiency, onCollaborate }: AgentCardProps) {
-  const efficiencyColor = efficiency > 90 ? 'text-green-400' : 'text-brand-primary';
+export function AgentCard({ name, role, status, budget, spent, efficiency }: AgentCardProps) {
+  const usagePct =
+    (parseFloat(spent.replace(/,/g, '')) / parseFloat(budget.replace(/,/g, ''))) * 100;
+  const isActive = status === 'active';
 
   return (
-    <motion.div 
-      whileHover={{ y: -5 }}
-      className="glass-panel p-6 rounded-[2rem] border-white/5 relative group overflow-hidden"
+    <motion.div
+      whileHover={{ y: -4, boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}
+      className="neural-card p-6 flex flex-col gap-5 relative overflow-hidden"
     >
-      {/* Background Neural Pulse */}
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand-primary/10 rounded-full blur-[80px] group-hover:bg-brand-primary/20 transition-all duration-500" />
+      {/* Subtle glow accent */}
+      <div
+        className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(0,229,204,0.06) 0%, transparent 70%)', margin: '-16px -16px 0 0' }}
+      />
 
-      <div className="flex items-start justify-between relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10 shadow-inner group-hover:border-brand-primary/30 transition-all relative">
-            <Activity className="w-7 h-7 text-brand-primary" />
-            <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-brand-secondary text-[8px] font-black text-white border border-brand-secondary/50">
-              {getCreditRating(efficiency)}
-            </div>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center"
+            style={{ background: 'rgba(0,229,204,0.08)' }}
+          >
+            <Cpu className="w-5 h-5 text-accent-cyan" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white tracking-tight">{name}</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">{role}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${statusColors[status]}`}>
-                {status}
-              </span>
-            </div>
+            <h3 className="text-base font-semibold text-white leading-tight">{name}</h3>
+            <span className="label-sm leading-none mt-0.5 block">{role}</span>
           </div>
         </div>
-        <button className="p-2 rounded-xl hover:bg-white/5 text-slate-500 hover:text-white transition-all">
-          <MoreVertical className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="mt-8 grid grid-cols-2 gap-4 relative z-10">
-        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-          <div className="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-            <Zap className="w-3 h-3" /> Allocated
-          </div>
-          <div className="text-lg font-bold text-white tracking-tight">{budget} <span className="text-[10px] text-slate-500">PUSD</span></div>
-        </div>
-        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-          <div className="text-xs text-slate-500 mb-1 flex items-center gap-1.5">
-            <ShieldCheck className="w-3 h-3" /> Trust Score
-          </div>
-          <div className={`text-lg font-bold tracking-tight ${efficiencyColor}`}>{efficiency}%</div>
+        <div
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+          style={{
+            background: isActive ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.05)',
+            color: isActive ? '#10b981' : 'rgba(255,255,255,0.3)',
+            border: `1px solid ${isActive ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)'}`,
+          }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ background: isActive ? '#10b981' : 'rgba(255,255,255,0.3)', boxShadow: isActive ? '0 0 6px rgba(16,185,129,0.5)' : 'none' }}
+          />
+          {isActive ? 'Active' : 'Idle'}
         </div>
       </div>
 
-      <div className="mt-6 space-y-2 relative z-10">
-        <div className="flex justify-between text-xs mb-1">
-          <span className="text-slate-500">Resource Utilization</span>
-          <span className="text-brand-primary font-mono">{spent} / {budget}</span>
+      {/* Metrics */}
+      <div className="grid grid-cols-2 gap-3">
+        <div
+          className="p-3.5 rounded-xl"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        >
+          <div className="flex items-center gap-1.5 mb-2">
+            <Zap className="w-3 h-3 text-white/30" />
+            <span className="label-xs">Allocation</span>
+          </div>
+          <div className="text-lg font-semibold text-white tabular-nums leading-none">
+            {budget}
+            <span className="text-xs text-white/30 font-normal ml-1">PUSD</span>
+          </div>
         </div>
-        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-          <motion.div 
+        <div
+          className="p-3.5 rounded-xl"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        >
+          <div className="flex items-center gap-1.5 mb-2">
+            <Target className="w-3 h-3 text-accent-cyan" />
+            <span className="label-xs">Efficiency</span>
+          </div>
+          <div className="text-lg font-semibold tabular-nums leading-none" style={{ color: '#00e5cc' }}>
+            {efficiency}%
+          </div>
+        </div>
+      </div>
+
+      {/* Usage Bar */}
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-white/30" />
+            <span className="label-sm">Resource usage</span>
+          </div>
+          <span className="text-xs font-medium text-white/50 tabular-nums">
+            {spent} / {budget}
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+          <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${(parseFloat(spent.replace(/,/g, '')) / parseFloat(budget.replace(/,/g, ''))) * 100}%` }}
-            className="h-full bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full"
+            animate={{ width: `${usagePct}%` }}
+            transition={{ duration: 1, ease: 'easeOut' }}
+            className="h-full rounded-full"
+            style={{ background: 'linear-gradient(90deg, #00e5cc, #6366f1)' }}
           />
         </div>
       </div>
 
-      <div className="mt-8 flex gap-3 relative z-10">
-        <button 
-          onClick={onCollaborate}
-          className="flex-1 py-3 rounded-2xl bg-brand-primary text-neural-dark font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg shadow-brand-primary/20 active:scale-95"
-        >
-          Collaborate
-        </button>
-        <button className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">
-          <Settings className="w-5 h-5" />
-        </button>
-      </div>
+      {/* Action */}
+      <button
+        className="w-full py-3 rounded-xl text-sm font-medium text-white/60 hover:text-white transition-all"
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
+        }}
+      >
+        Sync Agent
+      </button>
     </motion.div>
   );
 }

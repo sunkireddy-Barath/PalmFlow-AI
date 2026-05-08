@@ -1,7 +1,9 @@
 import { agentService } from './agent.service';
 import { streamService } from './stream.service';
 import { policyService } from './policy.service';
+import { solanaService } from './solana.service';
 import { transactionService } from './transaction.service';
+import { Keypair } from '@solana/web3.js';
 
 export const workflowService = {
   /**
@@ -15,12 +17,52 @@ export const workflowService = {
       console.log(`--- Executing Workflow Step: ${step.type} ---`);
       
       try {
+        // --- SECURITY VALIDATION ---
+        // Check if the action violates any neural guardrails/policies
+        const validation = await policyService.validateAction(
+          step.type === 'payment' ? 'spending_limit' : step.type,
+          step.data.amount || step.data.budget || 0,
+          step.data.agentId
+        );
+
+        if (!validation.allowed) {
+          results.push({ 
+            step: step.type, 
+            success: false, 
+            error: `Security Block: ${validation.reason}` 
+          });
+          continue; // Skip this step but continue with others if possible
+        }
+
         let result;
         switch (step.type) {
-          case 'deploy_agent':
-            // Call the agent creation logic (mocked for demo logic)
-            result = { success: true, message: `Agent ${step.data.name} deployed.` };
+          case 'deploy_agent': {
+            const agentKeypair = Keypair.generate();
+            const walletAddress = agentKeypair.publicKey.toBase58();
+            
+            result = await agentService.createAgent({
+              name: step.data.name,
+              role: step.data.role,
+              budget: parseFloat(step.data.budget),
+              walletAddress
+            });
+            
+            // Fund the agent
+            const funding = Math.min(parseFloat(step.data.budget) * 0.05, 10);
+            try {
+              await solanaService.executePayment(walletAddress, funding);
+              await transactionService.createTransaction({
+                agentId: result.id,
+                amount: funding,
+                type: 'deposit',
+                description: 'Initial funding from Treasury',
+                status: 'completed'
+              });
+            } catch (fundErr) {
+              console.warn('Initial funding failed:', fundErr);
+            }
             break;
+          }
           case 'start_stream':
             result = await streamService.createStream(step.data);
             break;
@@ -28,13 +70,20 @@ export const workflowService = {
             result = await policyService.createPolicy(step.data);
             break;
           case 'payment':
-            // Logic for a single payment
-            result = { success: true, message: `Payment of ${step.data.amount} executed.` };
+            // Logic for a single on-chain payment
+            const signature = await solanaService.executePayment(step.data.recipient, step.data.amount);
+            result = await transactionService.createTransaction({
+              amount: step.data.amount,
+              type: 'payment',
+              description: step.data.description || 'Autonomous payment',
+              txHash: signature,
+              status: 'completed'
+            });
             break;
           default:
             throw new Error(`Unknown step type: ${step.type}`);
         }
-        results.push({ step: step.type, ...result });
+        results.push({ step: step.type, success: true, data: result });
       } catch (error) {
         console.error(`Step ${step.type} failed:`, error);
         results.push({ step: step.type, success: false, error: (error as Error).message });

@@ -13,7 +13,8 @@ import {
   getMint
 } from '@solana/spl-token';
 
-const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl('devnet');
+const connection = new Connection(RPC_URL, 'confirmed');
 const PUSD_MINT = new PublicKey(process.env.NEXT_PUBLIC_PUSD_MINT!);
 
 export const solanaService = {
@@ -35,10 +36,23 @@ export const solanaService = {
   },
 
   /**
+   * Wait for a transaction to reach a certain commitment level
+   */
+  async waitForConfirmation(signature: string, commitment: 'confirmed' | 'finalized' = 'confirmed') {
+    const latestBlockhash = await connection.getLatestBlockhash();
+    return await connection.confirmTransaction({
+      signature,
+      ...latestBlockhash
+    }, commitment);
+  },
+
+  /**
    * Execute an on-chain payment from the Treasury to a recipient
    */
   async executePayment(recipientAddress: string, amount: number) {
     try {
+      console.log(`--- Initiating On-chain Payment: ${amount} PUSD ---`);
+      
       const authoritySecret = JSON.parse(process.env.PUSD_AUTHORITY_KEY!);
       const authority = Keypair.fromSecretKey(Uint8Array.from(authoritySecret));
       const recipient = new PublicKey(recipientAddress);
@@ -47,7 +61,7 @@ export const solanaService = {
       const toAta = await getAssociatedTokenAddress(PUSD_MINT, recipient);
       
       const mintInfo = await getMint(connection, PUSD_MINT);
-      const amountInBaseUnits = BigInt(amount * Math.pow(10, mintInfo.decimals));
+      const amountInBaseUnits = BigInt(Math.floor(amount * Math.pow(10, mintInfo.decimals)));
 
       const transaction = new Transaction().add(
         createTransferInstruction(
@@ -58,7 +72,16 @@ export const solanaService = {
         )
       );
 
-      const signature = await sendAndConfirmTransaction(connection, transaction, [authority]);
+      const signature = await sendAndConfirmTransaction(connection, transaction, [authority], {
+        commitment: 'confirmed',
+        preflightCommitment: 'confirmed',
+      });
+      
+      console.log(`--- Blockchain Payment Successful: ${signature} ---`);
+      
+      // Trigger background finalization check
+      this.waitForConfirmation(signature, 'finalized').catch(e => console.warn('Finalization check failed', e));
+
       return signature;
     } catch (error) {
       console.error('On-chain payment failed:', error);

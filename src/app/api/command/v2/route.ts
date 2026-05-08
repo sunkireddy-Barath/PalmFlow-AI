@@ -33,8 +33,16 @@ export async function POST(req: Request) {
       budget: 10000
     });
 
-    // Parse the steps from the AI response
-    const steps = JSON.parse(aiResponse.message);
+    // The generateAgentResponse already returns the parsed JSON object
+    const steps = aiResponse.steps || [];
+
+    if (!steps.length) {
+      return NextResponse.json({
+        success: true,
+        message: aiResponse.message || "I've analyzed your request but no direct actions were identified.",
+        results: []
+      });
+    }
 
     // 2. Execute the workflow
     const executionResults = await workflowService.executeWorkflow(steps);

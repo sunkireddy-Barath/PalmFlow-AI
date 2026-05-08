@@ -1,7 +1,9 @@
+import { NextResponse } from 'next/server';
 import { transactionService } from '@/server/services/transaction.service';
 import { agentService } from '@/server/services/agent.service';
 import { solanaService } from '@/server/services/solana.service';
 import { policyService } from '@/server/services/policy.service';
+import { generateAgentResponse } from '@/lib/ai/OpenAIProvider';
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +21,8 @@ export async function POST(req: Request) {
       budget: agent.budget - agent.spent,
     });
 
+    let txHash = '';
+
     // 3. ENFORCE POLICIES
     if (aiResponse.action === 'payment') {
       const validation = await policyService.validateAction('spending_limit', aiResponse.amount, agent.id);
@@ -30,11 +34,9 @@ export async function POST(req: Request) {
           reasoning: "Action blocked by security policy."
         });
       }
-    }
 
-    // 4. Execute Actions (REAL SOLANA TRANSACTIONS)
+      // 4. Execute Actions (REAL SOLANA TRANSACTIONS)
       // Execute REAL on-chain payment
-      // For demo, we use a fixed test recipient or the agent's wallet
       const recipient = agent.walletAddress || 'FRnaJo8MyEzt7Hd6XRHaYeid71JyaACEVVWkvjp4G8wv';
       
       txHash = await solanaService.executePayment(recipient, aiResponse.amount);
@@ -54,6 +56,7 @@ export async function POST(req: Request) {
       success: true,
       message: aiResponse.message || 'Workflow executed successfully',
       actions: aiResponse.actions || [],
+      txHash: txHash
     });
   } catch (error) {
     console.error('Workflow Execution Error:', error);

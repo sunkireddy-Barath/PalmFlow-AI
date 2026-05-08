@@ -1,111 +1,155 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { StreamingCard } from '@/components/dashboard/StreamingCard';
-import { Plus, CreditCard, Users, History, Calendar } from 'lucide-react';
+import { Plus, Users, CreditCard, History, Calendar, Download, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const streams = [
-  { recipient: 'Alex Rivera', role: 'Full Stack Developer', rate: 0.015, totalStreamed: 452.20, status: 'active' as const },
-  { recipient: 'Sarah Chen', role: 'UI/UX Designer', rate: 0.012, totalStreamed: 320.15, status: 'active' as const },
-  { recipient: 'Jordan Smith', role: 'Content Creator', rate: 0.008, totalStreamed: 125.40, status: 'paused' as const },
-];
+import { useStreams } from '@/hooks/useStreams';
+import { Loader2 } from 'lucide-react';
 
 export default function PayrollPage() {
+  const { data: streams, isLoading, toggleStream } = useStreams();
+  const [showCreate, setShowCreate] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[80vh] flex-col items-center justify-center gap-4">
+        <Loader2 className="w-8 h-8 text-white/20 animate-spin" />
+        <span className="text-xs text-white/30 uppercase tracking-widest font-bold">Establishing Secure Streams...</span>
+      </div>
+    );
+  }
+
+  const totalStreamed = streams?.reduce((acc: number, s: any) => acc + s.totalStreamed, 0) || 0;
+  const activeCount = streams?.filter((s: any) => s.status === 'active').length || 0;
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="max-w-[1400px] mx-auto px-4 py-10 space-y-8 pb-32"
+    >
+      {/* Header */}
+      <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 px-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Streaming Payroll</h1>
-          <p className="text-slate-400 mt-1">Real-time global compensation infrastructure</p>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="status-dot-active" />
+            <span className="label-xs">Streaming payroll active</span>
+          </div>
+          <h1 className="text-xl font-semibold text-white tracking-tight">Streaming Payroll</h1>
+          <p className="text-sm text-white/40 font-normal mt-1">Real-time global compensation infrastructure powered by PUSD</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-secondary text-white text-sm font-bold hover:bg-brand-secondary/80 transition-all shadow-lg shadow-brand-secondary/20">
+        <button
+          onClick={() => setShowCreate(true)}
+          className="btn-primary"
+        >
           <Plus className="w-4 h-4" />
-          Create New Stream
+          Create Stream
         </button>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel p-6 rounded-3xl border-l-4 border-l-brand-primary">
-          <div className="text-slate-500 text-sm mb-1">Total Streaming Volume</div>
-          <div className="text-3xl font-bold text-white">$12,450.00 <span className="text-sm font-normal text-slate-500">PUSD</span></div>
-        </div>
-        <div className="glass-panel p-6 rounded-3xl">
-          <div className="text-slate-500 text-sm mb-1">Active Streams</div>
-          <div className="text-3xl font-bold text-white">24</div>
-        </div>
-        <div className="glass-panel p-6 rounded-3xl">
-          <div className="text-slate-500 text-sm mb-1">Next Settlement</div>
-          <div className="text-3xl font-bold text-white flex items-center gap-2">
-            Instant <span className="text-xs px-2 py-1 rounded bg-green-400/10 text-green-400">Real-time</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Active Payment Streams</h2>
-            <div className="flex gap-2">
-              <button className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white"><Calendar className="w-4 h-4" /></button>
-              <button className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white"><History className="w-4 h-4" /></button>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Streamed', value: `$${totalStreamed.toFixed(2)}`, sub: 'PUSD lifetime', color: '#00e5cc' },
+          { label: 'Active Streams', value: activeCount, sub: `from ${streams?.length || 0} total`, color: '#6366f1' },
+          { label: 'Settlement Speed', value: 'Instant', sub: 'Real-time on-chain', color: '#10b981' },
+        ].map((s, i) => (
+          <motion.div key={i} variants={item} className="neural-card p-5 flex items-center gap-4">
+            <div className="w-2 h-10 rounded-full flex-shrink-0" style={{ background: s.color }} />
+            <div>
+              <div className="label-xs mb-1">{s.label}</div>
+              <div className="text-lg font-semibold text-white tracking-tight tabular-nums">{s.value}</div>
+              <div className="text-xs text-white/30 mt-0.5">{s.sub}</div>
             </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Streams List */}
+        <motion.div variants={item} className="lg:col-span-2 space-y-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-white">Active Streams</h2>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {streams.map((stream, i) => (
+          <div className="space-y-3">
+            {streams?.map((stream: any, i: number) => (
               <motion.div
-                key={stream.recipient}
-                initial={{ opacity: 0, x: -20 }}
+                key={stream.id}
+                initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.08 }}
               >
-                <StreamingCard {...stream} />
+                <StreamingCard 
+                  recipient={stream.recipientName}
+                  role={stream.recipientRole}
+                  rate={stream.ratePerSecond}
+                  totalStreamed={stream.totalStreamed}
+                  status={stream.status}
+                />
               </motion.div>
             ))}
+            {(!streams || streams.length === 0) && (
+              <div className="neural-card p-20 flex flex-col items-center justify-center text-center">
+                <Users className="w-10 h-10 text-white/10 mb-4" />
+                <p className="text-sm text-white/30">No active streams detected. Begin your first neural payroll.</p>
+              </div>
+            )}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="space-y-6">
-          <h2 className="text-xl font-bold text-white">Payroll Analytics</h2>
-          <div className="glass-panel p-6 rounded-3xl space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">Operational Budget</span>
-                <span className="text-white font-medium">85% utilized</span>
-              </div>
-              <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-brand-secondary w-[85%]" />
-              </div>
+        {/* Analytics Sidebar */}
+        <motion.div variants={item} className="space-y-4">
+          <h2 className="text-base font-semibold text-white">Analytics</h2>
+
+          {/* Budget Utilization */}
+          <div className="neural-card p-5 space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="label-sm">Operational Budget</span>
+              <span className="text-sm font-medium text-white">12%</span>
             </div>
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="h-full rounded-full w-[12%]" style={{ background: 'linear-gradient(90deg, #00e5cc, #6366f1)' }} />
+            </div>
+            <div className="flex justify-between text-xs text-white/30">
+              <span>${totalStreamed.toFixed(0)} spent</span>
+              <span>$50,000 allocated</span>
+            </div>
+          </div>
 
-            <div className="pt-6 border-t border-white/5 space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                <div className="w-10 h-10 rounded-xl bg-blue-400/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-400" />
+          {/* Info cards */}
+          <div className="space-y-3">
+            {[
+              { icon: Users, label: 'Global Reach', value: 'Neural Network Active', color: '#6366f1' },
+              { icon: CreditCard, label: 'Fee Savings', value: '100% (Native PUSD)', color: '#00e5cc' },
+            ].map((card, i) => (
+              <div key={i} className="neural-card p-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${card.color}15` }}>
+                  <card.icon className="w-4 h-4" style={{ color: card.color }} />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">Global Reach</div>
-                  <div className="text-xs text-slate-500">12 countries supported</div>
+                  <div className="text-sm font-medium text-white leading-tight">{card.label}</div>
+                  <div className="label-sm">{card.value}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-                <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-brand-primary" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white">PUSD Savings</div>
-                  <div className="text-xs text-slate-500">$1,240 saved on fees</div>
-                </div>
-              </div>
-            </div>
-
-            <button className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all text-sm">
-              Download Payroll Report
-            </button>
+            ))}
           </div>
-        </div>
+
+          {/* Download Report */}
+          <button
+            className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-white/50 hover:text-white transition-colors"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          >
+            <Download className="w-4 h-4" />
+            Download Detailed Report
+          </button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
+  );
+}
   );
 }

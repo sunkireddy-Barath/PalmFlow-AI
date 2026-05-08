@@ -15,7 +15,16 @@ export async function generateAgentResponse(prompt: string, context: any) {
           Your role is: ${context.agentRole}. 
           Current status: ${context.agentStatus}. 
           Available budget: ${context.budget} PUSD.
-          You must respond in a professional, efficient, and machine-like manner. 
+          You must respond with a JSON object containing:
+          1. "message": A professional confirmation of the plan.
+          2. "steps": An array of actions if applicable.
+          
+          Supported Step Types:
+          - deploy_agent (data: { name, role, budget })
+          - start_stream (data: { recipientName, recipientRole, ratePerSecond, walletAddress })
+          - set_policy (data: { name, type, value, description })
+          - payment (data: { recipient, amount, description })
+          
           Focus on financial execution, risk management, and autonomous workflows.`,
         },
         {
