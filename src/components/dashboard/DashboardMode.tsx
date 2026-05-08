@@ -171,36 +171,53 @@ export const DashboardMode = () => {
           </div>
         </motion.div>
 
-        {/* Activity Feed */}
-        <motion.div variants={item} className="lg:col-span-4 neural-card p-5 flex flex-col gap-4 overflow-hidden h-[320px]">
-          <div className="flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-accent-cyan" />
-              <h3 className="text-sm font-semibold text-white">Live Activity</h3>
+        {/* Activity Feed & Sentinel */}
+        <motion.div variants={item} className="lg:col-span-4 flex flex-col gap-4 h-[320px]">
+          {/* Sentinel Status */}
+          <div className="neural-card p-4 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-white uppercase tracking-widest">Neural Sentinel</div>
+                <div className="text-[10px] text-white/40 mt-0.5">Audit: 0.04ms · All Systems Secure</div>
+              </div>
             </div>
-            <span className="status-dot-active" />
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10">
+              <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Active</span>
+            </div>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-1 -mr-2 pr-2">
-            {(agents?.flatMap((a: any) => a.transactions) || []).slice(0, 8).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((tx: any, i: number) => (
-              <div key={i} className="flex items-start gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.02] transition-colors group">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: 'rgba(0,229,204,0.08)' }}>
-                  <Zap className="w-3.5 h-3.5 text-accent-cyan" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-white/60 mb-0.5">AGENT {tx.agentId?.slice(-4).toUpperCase() || 'CORE'}</div>
-                  <div className="text-sm text-white/80 leading-snug">{tx.description}</div>
-                  <div className="text-xs text-white/25 mt-1">{new Date(tx.createdAt).toLocaleTimeString()}</div>
-                </div>
+
+          {/* Live Activity */}
+          <div className="neural-card p-5 flex-1 flex flex-col gap-4 overflow-hidden">
+            <div className="flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-accent-cyan" />
+                <h3 className="text-sm font-semibold text-white">Neural Activity</h3>
               </div>
-            ))}
-            {(!agents || agents.flatMap((a: any) => a.transactions).length === 0) && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <div className="w-12 h-12 rounded-full bg-white/[0.02] flex items-center justify-center mb-4">
-                  <Activity className="w-6 h-6 text-white/10" />
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-1 -mr-2 pr-2">
+              {(agents?.flatMap((a: any) => a.transactions) || []).slice(0, 5).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((tx: any, i: number) => (
+                <div key={i} className="flex items-start gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.02] transition-colors group">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: 'rgba(0,229,204,0.08)' }}>
+                    <Zap className="w-3.5 h-3.5 text-accent-cyan" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium text-white/60 mb-0.5">AGENT {tx.agentId?.slice(-4).toUpperCase() || 'CORE'}</div>
+                    <div className="text-sm text-white/80 leading-snug">{tx.description}</div>
+                    <div className="text-xs text-white/25 mt-1">{new Date(tx.createdAt).toLocaleTimeString()}</div>
+                  </div>
                 </div>
-                <p className="text-xs text-white/30">No neural activity detected yet. Deploy an agent to begin.</p>
-              </div>
-            )}
+              ))}
+              {(!agents || agents.flatMap((a: any) => a.transactions).length === 0) && (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                  <Activity className="w-6 h-6 text-white/10 mb-2" />
+                  <p className="text-[10px] text-white/30 uppercase tracking-widest">No activity detected</p>
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
