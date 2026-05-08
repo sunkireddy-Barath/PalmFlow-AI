@@ -11,14 +11,18 @@ import {
   ShoppingCart,
   Shield,
   Cpu,
+  History,
+  CreditCard
 } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Chat', href: '/chat', icon: MessageSquare },
-  { name: 'Agents', href: '/agents', icon: Users },
+  { name: 'Workforce', href: '/agents', icon: Users },
   { name: 'Market', href: '/marketplace', icon: ShoppingCart },
-  { name: 'Policy', href: '/policy', icon: Shield },
+  { name: 'Payroll', href: '/payroll', icon: CreditCard },
+  { name: 'Laws', href: '/policy', icon: Shield },
+  { name: 'Ledger', href: '/history', icon: History },
 ];
 
 export const BottomDock = () => {
