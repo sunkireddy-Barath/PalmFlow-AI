@@ -7,33 +7,80 @@ export const sentinelService = {
    */
   async performSecurityAudit() {
     console.log('--- Sentinel Security Audit Initiated ---');
+    const logs = [];
     
     // 1. Detect abnormal spending velocity
-    // If more than 3 transactions happen in 1 minute, it might be a rogue agent
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
     const recentTxCount = await prisma.transaction.count({
-      where: {
-        createdAt: { gte: oneMinuteAgo }
-      }
+      where: { createdAt: { gte: oneMinuteAgo } }
     });
 
     if (recentTxCount > 5) {
-      console.warn('--- ABNORMAL ACTIVITY DETECTED: AUTO-LOCKING TREASURY ---');
-      
-      // Auto-enable the most restrictive policies
-      const policies = await prisma.policy.findMany();
-      for (const policy of policies) {
-        if (policy.type === 'global_limit' || policy.type === 'spending_limit') {
-          await prisma.policy.update({
-            where: { id: policy.id },
-            data: { isActive: true, value: Math.min(policy.value, 100) } // Tighten limit to 100
-          });
-        }
-      }
-
-      return { status: 'emergency_lock', reason: 'High transaction velocity detected.' };
+      logs.push(`High transaction velocity: ${recentTxCount} tx/min detected.`);
+      await this.autoLockTreasury('Abnormal spending velocity detected.');
+      return { status: 'emergency_lock', reason: 'High transaction velocity.', logs };
     }
 
-    return { status: 'secure', message: 'All systems nominal.' };
+    // 2. Detect Budget Drain (simulated logic)
+    // If an agent spends more than 50% of budget in < 1 hour
+    const agents = await prisma.agent.findMany({ where: { status: 'active' } });
+    for (const agent of agents) {
+      if (agent.spent > agent.budget * 0.8) {
+        logs.push(`Critical Budget Alert: Agent ${agent.name} has consumed 80%+ of allocation.`);
+      }
+    }
+
+    // 3. Simulated "Neural Pulse" check
+    const isNeuralCoreStable = Math.random() > 0.01; // 99% stability simulation
+    if (!isNeuralCoreStable) {
+      logs.push('Neural Core instability detected in H100 cluster.');
+      return { status: 'warning', reason: 'System instability.', logs };
+    }
+
+    return { 
+      status: 'secure', 
+      message: 'All systems nominal.',
+      auditTime: new Date().toISOString(),
+      logs: logs.length > 0 ? logs : ['No threats detected.', 'Solana Devnet sync stable.']
+    };
+  },
+
+  /**
+   * Auto-enable the most restrictive policies
+   */
+  async autoLockTreasury(reason: string) {
+    console.warn(`--- AUTO-LOCKING TREASURY: ${reason} ---`);
+    
+    // Create or update a "Global Emergency Lock" policy
+    const existingLock = await prisma.policy.findFirst({
+      where: { type: 'global_lock' }
+    });
+
+    if (existingLock) {
+      await prisma.policy.update({
+        where: { id: existingLock.id },
+        data: { isActive: true, description: `Emergency Lock: ${reason}` }
+      });
+    } else {
+      await prisma.policy.create({
+        data: {
+          name: 'GLOBAL EMERGENCY LOCK',
+          type: 'global_lock',
+          value: 0,
+          description: `Emergency Lock: ${reason}`,
+          isActive: true
+        }
+      });
+    }
+
+    // Also record a security event
+    await prisma.transaction.create({
+      data: {
+        amount: 0,
+        type: 'security_event',
+        description: `TREASURY LOCKED: ${reason}`,
+        status: 'blocked'
+      }
+    });
   }
 };

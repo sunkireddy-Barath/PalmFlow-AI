@@ -17,20 +17,21 @@ export const reputationService = {
     let score = agent.efficiency;
 
     // 2. Task Volume Bonus
-    score += Math.min(agent.tasksCount * 2, 20);
+    score += Math.min(agent.tasksCount * 0.5, 15);
 
     // 3. Discipline Penalty (if spent > budget)
     if (agent.spent > agent.budget) {
-      score -= 30;
+      score -= 25;
     }
 
     // 4. Yield / P&L Bonus
     // If agent is responsible for yield investments, increase rating
-    const yieldTx = agent.transactions.filter(t => t.type === 'yield_investment');
-    const pnlIncrease = yieldTx.length * 0.5; // Simulate 0.5% growth per harvest
+    const yieldTx = agent.transactions.filter(t => t.type === 'yield_investment' || t.description.includes('Autonomous cycle'));
+    const pnlIncrease = yieldTx.length * 0.2; // 0.2% growth per recorded work cycle
     
+    // 5. Stability Score
     const finalScore = Math.max(0, Math.min(100, score));
-    const newRating = Math.max(1, Math.min(5, 4 + (finalScore / 100)));
+    const newRating = Math.max(1, Math.min(5, 3.5 + (finalScore / 100) * 1.5));
 
     await prisma.agent.update({
       where: { id: agentId },

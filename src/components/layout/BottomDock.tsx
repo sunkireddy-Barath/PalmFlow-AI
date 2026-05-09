@@ -12,7 +12,8 @@ import {
   Shield,
   Cpu,
   History,
-  CreditCard
+  CreditCard,
+  Rocket
 } from 'lucide-react';
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { name: 'Chat', href: '/chat', icon: MessageSquare },
   { name: 'Workforce', href: '/agents', icon: Users },
   { name: 'Market', href: '/marketplace', icon: ShoppingCart },
+  { name: 'Launchpad', href: '/launchpad', icon: Rocket },
   { name: 'Payroll', href: '/payroll', icon: CreditCard },
   { name: 'Laws', href: '/policy', icon: Shield },
   { name: 'Ledger', href: '/history', icon: History },

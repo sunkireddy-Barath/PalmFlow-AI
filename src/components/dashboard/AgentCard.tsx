@@ -14,12 +14,36 @@ interface AgentCardProps {
   efficiency: number;
   pnl?: number;
   rating?: number;
+  agentId: string;
 }
 
-export function AgentCard({ name, role, status, budget, spent, efficiency, pnl = 0, rating = 5.0 }: AgentCardProps) {
+export function AgentCard({ 
+  name, role, status, budget, spent, efficiency, pnl = 0, rating = 5.0, agentId 
+}: AgentCardProps) {
+  const [isSyncing, setIsSyncing] = React.useState(false);
   const usagePct =
     (parseFloat(spent.replace(/,/g, '')) / parseFloat(budget.replace(/,/g, ''))) * 100;
   const isActive = status === 'active';
+
+  const handleSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/agents/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agentId }),
+      });
+      if (res.ok) {
+        // Success - we could trigger a global refetch here if needed
+        window.location.reload(); // Simple way to refresh data for now
+      }
+    } catch (err) {
+      console.error('Failed to sync agent:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   return (
     <motion.div
@@ -123,16 +147,25 @@ export function AgentCard({ name, role, status, budget, spent, efficiency, pnl =
 
       {/* Action */}
       <button
-        className="w-full py-3 rounded-xl text-sm font-medium text-white/60 hover:text-white transition-all"
+        onClick={handleSync}
+        disabled={isSyncing}
+        className="w-full py-3 rounded-xl text-sm font-medium text-white/60 hover:text-white transition-all flex items-center justify-center gap-2"
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
+          if (!isSyncing) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)';
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
+          if (!isSyncing) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
         }}
       >
-        Sync Agent
+        {isSyncing ? (
+          <>
+            <Zap className="w-4 h-4 animate-pulse text-accent-cyan" />
+            Syncing...
+          </>
+        ) : (
+          'Sync Agent'
+        )}
       </button>
     </motion.div>
   );

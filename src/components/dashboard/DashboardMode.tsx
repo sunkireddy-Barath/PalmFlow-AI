@@ -7,9 +7,11 @@ import { TreasuryChart } from '@/components/dashboard/TreasuryChart';
 import { PortfolioView } from '@/components/dashboard/PortfolioView';
 import { useAgents } from '@/hooks/useAgents';
 import { useTreasury } from '@/hooks/useTreasury';
+import { useInsights } from '@/hooks/useInsights';
+import { useSentinel } from '@/hooks/useSentinel';
 import {
   Wallet, Activity, BarChart3, Cpu, Plus, Zap,
-  ArrowUpRight, Search, Globe, TrendingUp, ShieldCheck, Brain
+  ArrowUpRight, Search, Globe, TrendingUp, ShieldCheck, Brain, Loader2
 } from 'lucide-react';
 
 const container: Variants = {
@@ -25,6 +27,8 @@ const item: Variants = {
 export const DashboardMode = () => {
   const { data: agents } = useAgents();
   const { data: treasury } = useTreasury();
+  const { data: neuralInsights, isLoading: insightsLoading } = useInsights();
+  const sentinel = useSentinel();
 
   const stats = [
     {
@@ -162,20 +166,43 @@ export const DashboardMode = () => {
         {/* Activity Feed & Sentinel */}
         <motion.div variants={item} className="lg:col-span-4 flex flex-col gap-4 h-[320px]">
           {/* Sentinel Status */}
-          <div className="neural-card p-4 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+          <div className="neural-card p-4 flex flex-col gap-4 shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl ${sentinel.status?.data?.status === 'locked' ? 'bg-red-500/10' : 'bg-emerald-500/10'} flex items-center justify-center`}>
+                  <ShieldCheck className={`w-5 h-5 ${sentinel.status?.data?.status === 'locked' ? 'text-red-500' : 'text-emerald-500'}`} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white uppercase tracking-widest">Neural Sentinel</div>
+                  <div className="text-[10px] text-white/40 mt-0.5">
+                    {sentinel.audit.isPending ? 'Audit in progress...' : `Status: ${sentinel.status?.data?.status === 'locked' ? 'EMERGENCY LOCK' : 'SECURE'}`}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-xs font-bold text-white uppercase tracking-widest">Neural Sentinel</div>
-                <div className="text-[10px] text-white/40 mt-0.5">Audit: 0.04ms · All Systems Secure</div>
+              <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${sentinel.status?.data?.status === 'locked' ? 'bg-red-500/10' : 'bg-emerald-500/10'}`}>
+                <div className={`w-1 h-1 rounded-full ${sentinel.status?.data?.status === 'locked' ? 'bg-red-500' : 'bg-emerald-500'} animate-pulse`} />
+                <span className={`text-[10px] font-bold ${sentinel.status?.data?.status === 'locked' ? 'text-red-500' : 'text-emerald-500'} uppercase tracking-widest`}>
+                  {sentinel.status?.data?.status === 'locked' ? 'LOCKED' : 'ACTIVE'}
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10">
-              <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Active</span>
-            </div>
+            
+            {sentinel.status?.data?.status === 'locked' && (
+              <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+                <p className="text-[10px] text-red-400 leading-relaxed font-medium">
+                  {sentinel.status.data.reason}
+                </p>
+              </div>
+            )}
+
+            <button 
+              onClick={() => sentinel.audit.mutate()}
+              disabled={sentinel.audit.isPending}
+              className="w-full py-2 rounded-lg bg-white/[0.03] border border-white/10 text-[10px] font-bold text-white/60 hover:text-white hover:bg-white/[0.05] transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+            >
+              {sentinel.audit.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+              Perform Security Audit
+            </button>
           </div>
 
           {/* Live Activity */}
@@ -232,6 +259,7 @@ export const DashboardMode = () => {
                 efficiency={agent.efficiency}
                 pnl={agent.pnl}
                 rating={agent.rating}
+                agentId={agent.id}
               />
             ))}
           </div>
@@ -244,15 +272,37 @@ export const DashboardMode = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Brain className="w-4 h-4 text-purple-400" />
-                <h3 className="text-sm font-semibold text-white">Neural Sentiment</h3>
+                <h3 className="text-sm font-semibold text-white">Neural Advisor</h3>
               </div>
-              <span className="px-2 py-0.5 rounded bg-purple-500/10 text-[10px] font-bold text-purple-400 uppercase tracking-widest">Optimistic</span>
+              <span className="px-2 py-0.5 rounded bg-purple-500/10 text-[10px] font-bold text-purple-400 uppercase tracking-widest">
+                {insightsLoading ? 'Analyzing...' : 'Strategic Sync'}
+              </span>
             </div>
-            <div className="flex items-end gap-3">
-              <div className="text-3xl font-semibold text-white tracking-tighter">84<span className="text-lg text-white/30 ml-1">/100</span></div>
-              <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium mb-1.5">
-                <TrendingUp className="w-3 h-3" /> +12%
-              </div>
+            
+            <div className="space-y-4">
+              {neuralInsights?.insights?.slice(0, 2).map((insight: any, i: number) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1 h-1 rounded-full ${insight.impact === 'positive' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <div className="text-[11px] font-bold text-white/80 uppercase tracking-wider">{insight.title}</div>
+                  </div>
+                  <p className="text-xs text-white/40 leading-relaxed pl-3">{insight.desc}</p>
+                </div>
+              ))}
+              
+              {!insightsLoading && neuralInsights?.strategicAction && (
+                <div className="pt-2 mt-2 border-t border-white/5">
+                  <div className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Recommended Action</div>
+                  <div className="text-xs text-white font-medium italic">"{neuralInsights.strategicAction}"</div>
+                </div>
+              )}
+              
+              {insightsLoading && (
+                <div className="flex items-center gap-3 py-4">
+                  <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                  <span className="text-xs text-white/30 italic">Decrypting neural patterns...</span>
+                </div>
+              )}
             </div>
           </div>
           

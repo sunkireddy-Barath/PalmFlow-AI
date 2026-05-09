@@ -122,6 +122,7 @@ export default function AgentsPage() {
                 efficiency={agent.efficiency}
                 pnl={agent.pnl}
                 rating={agent.rating}
+                agentId={agent.id}
               />
             </motion.div>
           ))}

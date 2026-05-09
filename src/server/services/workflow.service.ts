@@ -80,6 +80,11 @@ export const workflowService = {
               status: 'completed'
             });
             break;
+          case 'agent_sync':
+            // Logic to trigger an autonomous work cycle for an agent
+            // This is primarily handled in the /api/agents/sync route but added here for orchestration
+            result = { status: 'sync_initiated', agentId: step.data.agentId };
+            break;
           default:
             throw new Error(`Unknown step type: ${step.type}`);
         }

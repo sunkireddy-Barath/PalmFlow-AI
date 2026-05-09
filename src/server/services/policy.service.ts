@@ -32,7 +32,16 @@ export const policyService = {
    * Validate an action against active policies
    * Returns { allowed: boolean, reason?: string }
    */
-  async validateAction(type: string, amount: number, agentId?: string) {
+    // 0. Check for GLOBAL LOCK
+    const globalLock = await prisma.policy.findFirst({
+      where: { type: 'global_lock', isActive: true }
+    });
+
+    if (globalLock) {
+      const reason = `CRITICAL: Treasury is currently LOCKED by Risk Sentinel (${globalLock.description})`;
+      return { allowed: false, reason };
+    }
+
     const policies = await prisma.policy.findMany({
       where: { 
         isActive: true,
@@ -66,8 +75,6 @@ export const policyService = {
           };
         }
       }
-
-      // Add more policy type logic here (risk_threshold, etc.)
     }
 
     return { allowed: true };

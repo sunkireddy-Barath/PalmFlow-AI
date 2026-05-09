@@ -6,6 +6,7 @@ export async function GET() {
     const insights = await insightService.generateStrategicInsights();
     return NextResponse.json(insights);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to generate strategic insights' }, { status: 500 });
+    console.error('Insights API Error:', error);
+    return NextResponse.json({ error: 'Failed to fetch insights' }, { status: 500 });
   }
 }
