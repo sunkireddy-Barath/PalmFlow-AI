@@ -11,16 +11,22 @@ PalmFlow AI is a next-generation decentralised finance operating system where AI
 1. [What is PalmFlow AI](#what-is-palmflow-ai)
 2. [Why It Matters — The Problem](#why-it-matters--the-problem)
 3. [Novelty & Innovation](#novelty--innovation)
-4. [System Architecture](#system-architecture)
-5. [Data Flow Diagrams](#data-flow-diagrams)
+4. [System Architecture](#system-architecture) — Mermaid layered flowchart
+5. [Data Flow Diagrams](#data-flow-diagrams) — 6 Mermaid sequence diagrams
+   - [1. Natural Language → On-Chain Execution](#1-natural-language-command--on-chain-execution)
+   - [2. Per-Second Payroll Streaming](#2-per-second-payroll-streaming)
+   - [3. Risk Sentinel Audit Cycle](#3-risk-sentinel--autonomous-security-audit)
+   - [4. IDO Project Launch & AI Audit](#4-ido-project-launch--ai-audit)
+   - [5. Autonomous Heartbeat Cycle](#5-autonomous-heartbeat-cycle)
+   - [6. Agent-to-Agent Collaboration](#6-agent-to-agent-collaboration)
 6. [Tech Stack](#tech-stack)
 7. [Feature Breakdown](#feature-breakdown)
-8. [Database Schema](#database-schema)
+8. [Database Schema](#database-schema) — ER diagram + field reference
 9. [API Reference](#api-reference)
 10. [Getting Started](#getting-started)
 11. [Environment Variables](#environment-variables)
 12. [How to Use — User Guide](#how-to-use--user-guide)
-13. [Security Model](#security-model)
+13. [Security Model](#security-model) — Defence-in-depth flowchart
 14. [Project Structure](#project-structure)
 15. [Roadmap](#roadmap)
 
@@ -89,284 +95,354 @@ All PUSD transfers use `createAssociatedTokenAccountIdempotentInstruction`, mean
 
 ## System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          PalmFlow AI — Full Stack                       │
-└─────────────────────────────────────────────────────────────────────────┘
+PalmFlow AI uses a high-performance full-stack architecture with a specialised AI orchestration and blockchain settlement layer.
 
-┌──────────────────────────────────────────────────────────────────────┐
-│                     CLIENT LAYER (Next.js 16, React 19)              │
-│                                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
-│  │Dashboard │  │  Chat /  │  │ Payroll  │  │Launchpad │  ...more   │
-│  │  /agents │  │NeuralCore│  │Streaming │  │  (IDO)   │            │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘            │
-│       │              │              │              │                  │
-│  ┌────┴─────────────┴──────────────┴──────────────┴──────┐          │
-│  │           TanStack Query v5 (React Query)              │          │
-│  │     Optimistic updates · Cache invalidation · SSR      │          │
-│  └────────────────────────┬──────────────────────────────┘          │
-│                           │ Wallet adapter (Phantom/Solflare/Coinbase)│
-└───────────────────────────┼──────────────────────────────────────────┘
-                            │ HTTP REST
-┌───────────────────────────┼──────────────────────────────────────────┐
-│                    API LAYER (Next.js App Router)                    │
-│                                                                      │
-│  /api/agents           /api/command/v2      /api/treasury/*         │
-│  /api/streams/*        /api/policies/*      /api/sentinel/*         │
-│  /api/ido/*            /api/insights        /api/system/heartbeat   │
-│  /api/workflow/execute /api/agents/sync     /api/agents/collaborate │
-└──────────────┬────────────────────────┬──────────────────────────────┘
-               │                        │
-    ┌──────────▼──────────┐   ┌─────────▼──────────┐
-    │    SERVICE LAYER    │   │      AI LAYER       │
-    │                     │   │                     │
-    │ agentService        │   │  Gemini 2.5 Flash   │
-    │ streamService       │   │                     │
-    │ sentinelService     │   │  generateAgent      │
-    │ reputationService   │   │  Response()         │
-    │ workflowService     │   │                     │
-    │ yieldService        │   │  JSON-structured    │
-    │ policyService       │   │  output (no        │
-    │ idoService          │   │  markdown wrapping) │
-    │ auditorService      │   │                     │
-    │ insightService      │   └─────────────────────┘
-    │ coordinationService │
-    └──────────┬──────────┘
-               │
-    ┌──────────▼──────────────────────────────────────┐
-    │               BLOCKCHAIN LAYER                  │
-    │                                                 │
-    │   solanaService                                 │
-    │   @solana/web3.js · @solana/spl-token           │
-    │                                                 │
-    │   getPUSDBalance()  → getAccount (RPC)          │
-    │   getPortfolio()    → getParsedTokenAccounts    │
-    │   executePayment()  → createATA (idempotent)    │
-    │                     → SPL createTransfer        │
-    │                     → sendAndConfirmTransaction │
-    └──────────┬──────────────────────────────────────┘
-               │
-    ┌──────────▼─────────────────────┬────────────────────────┐
-    │   Supabase PostgreSQL           │   Solana Devnet RPC    │
-    │   (via Prisma ORM)              │                        │
-    │                                 │   Token accounts       │
-    │   Agent · Transaction           │   SOL balances         │
-    │   Stream · Policy               │   Transaction sigs     │
-    │   Project · Investment          │   v4.0.0-rc.0          │
-    └─────────────────────────────────┴────────────────────────┘
+```mermaid
+graph TD
+    %% ── USER ENTRY LAYER ──────────────────────────────────────────
+    subgraph USER["🔗  User Entry Layer"]
+        U1[Phantom Wallet]
+        U2[Solflare Wallet]
+        U3[Coinbase Wallet]
+        U1 & U2 & U3 --> U4[Wallet Connection\n@solana/wallet-adapter]
+    end
+
+    U4 --> F1
+
+    %% ── FRONTEND LAYER ────────────────────────────────────────────
+    subgraph FRONTEND["🖥️  Frontend — Next.js 16 · React 19 · TypeScript"]
+        F1[Dashboard UI]
+        F1 --> F2[Neural Core Chat]
+        F1 --> F3[Agents Module]
+        F1 --> F4[Payroll Streaming]
+        F1 --> F5[Policy Engine]
+        F1 --> F6[Neural Launchpad]
+        F7[TanStack Query v5]
+        F8[Zustand Store]
+        F2 & F3 & F4 & F5 & F6 --> F7
+    end
+
+    F2 -->|Natural language prompt| A1
+    F7 -->|HTTP REST| D1
+
+    %% ── AI LAYER ──────────────────────────────────────────────────
+    subgraph AI["🧠  AI Layer — Gemini 2.5 Flash"]
+        A1[Command Parser]
+        A1 --> A2[Workflow Planner]
+        A1 --> A3[AI Auditor\n0–100 Risk Scores]
+        A1 --> A4[Insight Generator]
+    end
+
+    A2 --> D1
+    A3 --> D5
+    A4 --> D5
+
+    %% ── API LAYER ─────────────────────────────────────────────────
+    subgraph API["⚡  API Layer — Next.js App Router  ·  20 Routes"]
+        D1[/api/command/v2\n/api/workflow/execute]
+        D2[/api/agents\n/api/agents/sync\n/api/agents/collaborate]
+        D3[/api/streams\n/api/policies]
+        D4[/api/sentinel\n/api/system/heartbeat]
+        D5[/api/ido\n/api/insights\n/api/treasury]
+        D1 --> D2 & D3 & D4 & D5
+    end
+
+    %% ── SERVICE LAYER ─────────────────────────────────────────────
+    subgraph SERVICES["⚙️  Service Layer"]
+        S1[agentService\nreputationService]
+        S2[streamService\nyieldService]
+        S3[policyService\nsentinelService]
+        S4[idoService\nauditorService\ninsightService]
+        D2 --> S1
+        D3 --> S2
+        D3 --> S3
+        D4 --> S3
+        D5 --> S4
+    end
+
+    %% ── BLOCKCHAIN LAYER ──────────────────────────────────────────
+    subgraph BLOCKCHAIN["⛓️  Blockchain Layer — Solana Devnet  ·  solanaService"]
+        S1 & S2 & S4 --> B1[executePayment]
+        B1 --> B2[ATA Provisioning\nidempotent]
+        B1 --> B3[SPL Transfer\nsendAndConfirmTransaction]
+        B2 & B3 --> B4[PUSD Token\n4BTn2941...  ·  1,000,000 supply]
+    end
+
+    %% ── DATA LAYER ────────────────────────────────────────────────
+    subgraph DATA["🗄️  Data Layer"]
+        S1 & S2 & S3 & S4 --> DB[(Supabase PostgreSQL\nvia Prisma ORM\n─────────────\nAgent · Transaction\nStream · Policy\nProject · Investment)]
+        B4 --> RPC[(Solana Devnet RPC\nv4.0.0-rc.0\n─────────────\nToken Accounts\nSOL Balances\nTx Signatures)]
+    end
+
+    %% ── STYLES ────────────────────────────────────────────────────
+    style USER       fill:#0f172a,stroke:#475569,color:#cbd5e1
+    style FRONTEND   fill:#0f172a,stroke:#6366f1,color:#c7d2fe
+    style AI         fill:#0f172a,stroke:#a855f7,color:#e9d5ff
+    style API        fill:#0f172a,stroke:#0ea5e9,color:#bae6fd
+    style SERVICES   fill:#0f172a,stroke:#f59e0b,color:#fde68a
+    style BLOCKCHAIN fill:#0f172a,stroke:#00e5cc,color:#a5f3fc
+    style DATA       fill:#0f172a,stroke:#10b981,color:#a7f3d0
 ```
 
 ---
 
 ## Data Flow Diagrams
 
-### 1. Natural Language Command Execution
+### 1. Natural Language Command → On-Chain Execution
 
-```
-User types: "Deploy a Risk Manager agent with 5000 PUSD budget"
-        │
-        ▼
-┌───────────────────┐
-│  POST             │
-│  /api/command/v2  │
-└────────┬──────────┘
-         │ Sends prompt + context (agentName, role, status, budget)
-         ▼
-┌────────────────────────────────────────────────────┐
-│  Gemini 2.5 Flash (LLM)                            │
-│                                                    │
-│  System: You are PalmFlow Orchestrator.            │
-│          Parse into structured workflow steps.     │
-│                                                    │
-│  Output (JSON):                                    │
-│  {                                                 │
-│    "message": "Deploying Risk Manager...",         │
-│    "steps": [                                      │
-│      { "type": "deploy_agent",                     │
-│        "data": { "name": "Risk Manager",           │
-│                  "role": "Risk Manager",           │
-│                  "budget": 5000 } }                │
-│    ]                                               │
-│  }                                                 │
-└────────┬───────────────────────────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────────────────────┐
-│  workflowService.executeWorkflow(steps)            │
-│                                                    │
-│  For each step:                                    │
-│  ┌─────────────────────────────────────────────┐  │
-│  │ 1. policyService.validateAction()           │  │
-│  │    → Check spending_limit policies          │  │
-│  │    → Check global_lock policies             │  │
-│  │    → ALLOW or DENY (log reason if denied)   │  │
-│  └────────────────────┬────────────────────────┘  │
-│                       │ ALLOWED                    │
-│  ┌────────────────────▼────────────────────────┐  │
-│  │ 2. Keypair.generate()                       │  │
-│  │    → Fresh Solana keypair for agent wallet  │  │
-│  └────────────────────┬────────────────────────┘  │
-│                       │                            │
-│  ┌────────────────────▼────────────────────────┐  │
-│  │ 3. agentService.createAgent()               │  │
-│  │    → INSERT into agents table               │  │
-│  │    → Returns agent record with cuid id      │  │
-│  └────────────────────┬────────────────────────┘  │
-│                       │                            │
-│  ┌────────────────────▼────────────────────────┐  │
-│  │ 4. solanaService.executePayment()           │  │
-│  │    → getAssociatedTokenAddress (from + to)  │  │
-│  │    → getMint (PUSD decimals)                │  │
-│  │    → Transaction.add(                       │  │
-│  │        createATA_idempotent,  ← new wallet  │  │
-│  │        createTransferInstruction            │  │
-│  │      )                                      │  │
-│  │    → sendAndConfirmTransaction              │  │
-│  │    → Returns txHash (base58 signature)      │  │
-│  └────────────────────┬────────────────────────┘  │
-│                       │                            │
-│  ┌────────────────────▼────────────────────────┐  │
-│  │ 5. transactionService.createTransaction()   │  │
-│  │    → Log in DB: type=deposit, txHash, agent │  │
-│  └─────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────┘
-         │
-         ▼
-  { success: true, results: [{ step, success, data }] }
-  UI updates via React Query cache invalidation
+```mermaid
+sequenceDiagram
+    actor User
+    participant Chat as Neural Core UI
+    participant API as /api/command/v2
+    participant LLM as Gemini 2.5 Flash
+    participant WF as workflowService
+    participant Policy as policyService
+    participant DB as PostgreSQL
+    participant Solana as Solana Devnet
+
+    User->>Chat: "Deploy a Risk Manager agent with 5000 PUSD"
+    Chat->>API: POST { prompt }
+
+    API->>LLM: System prompt + user prompt
+    Note over LLM: Parse into structured steps
+    LLM-->>API: { message, steps: [{ type: "deploy_agent", data: {...} }] }
+
+    loop For each step
+        API->>WF: executeWorkflow(steps)
+        WF->>Policy: validateAction(type, amount)
+        alt Policy DENIED
+            Policy-->>WF: { allowed: false, reason: "..." }
+            WF-->>API: { step, success: false, error: "Security Block" }
+        else Policy ALLOWED
+            Policy-->>WF: { allowed: true }
+            WF->>WF: Keypair.generate() → new Solana wallet
+            WF->>DB: agentService.createAgent(name, role, budget)
+            DB-->>WF: Agent record with CUID
+            WF->>Solana: executePayment(walletAddress, fundingAmount)
+            Note over Solana: createATA (idempotent)<br/>createTransferInstruction<br/>sendAndConfirmTransaction
+            Solana-->>WF: txHash (base58 signature)
+            WF->>DB: transactionService.createTransaction(txHash)
+            WF-->>API: { step, success: true, data: agent }
+        end
+    end
+
+    API-->>Chat: { success: true, message, results[] }
+    Chat->>Chat: React Query cache invalidation
+    Chat-->>User: "Workflow executed: 1 action processed"
 ```
 
-### 2. Payroll Streaming Flow
+---
 
-```
-Stream created: { recipient: "Alice", rate: 0.001 PUSD/s, wallet: "AbC..." }
-        │
-        ▼
-┌─────────────────────────────────────────────────────┐
-│  POST /api/system/heartbeat  (autonomous cycle)     │
-└──────────┬──────────────────────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────────────────────┐
-│  streamService.updateAccruedTotals()                │
-│                                                     │
-│  For each active stream:                           │
-│    elapsed = (now - updatedAt) in seconds           │
-│    accrued = elapsed × ratePerSecond                │
-│    UPDATE stream SET                                │
-│      totalStreamed += accrued,                      │
-│      updatedAt = now                                │
-└──────────┬──────────────────────────────────────────┘
-           │
-           ▼
-  Streaming page shows live accumulating balance
-  Recipient verifies on Solscan (real wallet)
-  Pause/Resume toggles stream.status in DB
-```
+### 2. Per-Second Payroll Streaming
 
-### 3. Risk Sentinel Audit Cycle
+```mermaid
+sequenceDiagram
+    actor Operator
+    participant UI as Streaming Page
+    participant API as /api/streams
+    participant DB as PostgreSQL
+    participant HB as /api/system/heartbeat
+    participant Stream as streamService
+    participant Solscan as Solscan Explorer
 
-```
-POST /api/sentinel/audit
-        │
-        ▼
-┌────────────────────────────────────────────────────────┐
-│  sentinelService.performSecurityAudit()                │
-│                                                        │
-│  Check 1 — Transaction Velocity                        │
-│    COUNT(transactions WHERE createdAt > now-60s)       │
-│    if count > 5:                                       │
-│      → autoLockTreasury("High velocity")               │
-│      → return { status: 'emergency_lock' }             │
-│                                                        │
-│  Check 2 — Budget Drain                                │
-│    for each active agent:                             │
-│      if agent.spent > agent.budget × 0.8:             │
-│        → push alert to logs[]                          │
-│                                                        │
-│  Check 3 — Policy Compliance                           │
-│    All active policies validated against current state │
-│                                                        │
-│  Result:                                               │
-│    { status: 'secure' | 'warning' | 'emergency_lock', │
-│      message, auditTime, logs[] }                      │
-└────────────────────────────────────────────────────────┘
+    Operator->>UI: Create stream (Alice, 0.001 PUSD/s, wallet: AbC...)
+    UI->>API: POST /api/streams { recipientName, ratePerSecond, walletAddress }
+    API->>DB: prisma.stream.create({ status: "active", totalStreamed: 0 })
+    DB-->>API: Stream record
+    API-->>UI: Stream created
 
-  autoLockTreasury() side effects:
-  ┌────────────────────────────────────────────────────┐
-  │  prisma.policy.upsert({                           │
-  │    type: 'global_lock', isActive: true            │
-  │  })                                               │
-  │  prisma.transaction.create({                      │
-  │    type: 'security_event', status: 'blocked'      │
-  │  })                                               │
-  └────────────────────────────────────────────────────┘
-  All future workflow steps denied until policy removed
+    loop Every heartbeat cycle
+        HB->>Stream: updateAccruedTotals()
+        Stream->>DB: SELECT all active streams
+        DB-->>Stream: streams[]
+        loop For each active stream
+            Stream->>Stream: elapsed = now - stream.updatedAt (seconds)
+            Stream->>Stream: accrued = elapsed × ratePerSecond
+            Stream->>DB: UPDATE stream SET totalStreamed += accrued
+        end
+        Stream-->>HB: done
+    end
+
+    Operator->>UI: Click Pause
+    UI->>API: POST /api/streams/:id/toggle
+    API->>DB: UPDATE stream SET status = "paused"
+    DB-->>API: Updated stream
+    API-->>UI: { status: "paused" }
+
+    Operator->>Solscan: View recipient wallet
+    Solscan-->>Operator: Live PUSD balance on devnet
 ```
 
-### 4. IDO Investment & AI Audit Flow
+---
 
-```
-User clicks "Invest 500 PUSD" on Neural Launchpad
-        │
-        ▼
-┌─────────────────────────────────────────────────────┐
-│  POST /api/ido/invest                               │
-│  { projectId, amount, walletAddress }               │
-└──────────┬──────────────────────────────────────────┘
-           │
-           ├──── 1. solanaService.executePayment()
-           │         Treasury → Investor wallet
-           │         Returns txHash
-           │
-           ├──── 2. prisma.project.update({
-           │           raisedAmount: { increment: amount }
-           │         })
-           │
-           └──── 3. prisma.investment.create({
-                     amount, walletAddress, projectId
-                   })
+### 3. Risk Sentinel — Autonomous Security Audit
 
-AI Audit (runs on project creation):
-┌─────────────────────────────────────────────────────┐
-│  auditorService → Gemini 2.5 Flash                  │
-│                                                     │
-│  Input: project name, description, category, goal   │
-│  Output:                                            │
-│    aiScore: 0–100 (higher = safer)                  │
-│    aiAudit: plain-English risk assessment text      │
-│                                                     │
-│  → Saved to Project record in DB                    │
-│  → Displayed as risk badge on Launchpad UI          │
-└─────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant HB as Heartbeat / Manual Trigger
+    participant Sentinel as sentinelService
+    participant DB as PostgreSQL
+    participant Policy as policyService
+    participant LLM as Gemini 2.5 Flash
+
+    HB->>Sentinel: performSecurityAudit()
+
+    Sentinel->>DB: COUNT transactions WHERE createdAt > now−60s
+    DB-->>Sentinel: recentTxCount
+
+    alt recentTxCount > 5 (velocity attack)
+        Sentinel->>DB: policy.upsert({ type: "global_lock", isActive: true })
+        Sentinel->>DB: transaction.create({ type: "security_event", status: "blocked" })
+        Sentinel-->>HB: { status: "emergency_lock", reason: "High velocity" }
+    else Normal velocity
+        Sentinel->>DB: agent.findMany({ where: { status: "active" } })
+        DB-->>Sentinel: agents[]
+        loop For each agent
+            Sentinel->>Sentinel: Check if spent > budget × 0.8
+            alt Budget drain detected
+                Sentinel->>Sentinel: Push "Critical Budget Alert" to logs[]
+            end
+        end
+        Sentinel->>Policy: Validate all active policies vs current state
+        Policy-->>Sentinel: compliance status
+        Sentinel->>LLM: Generate narrative risk assessment
+        LLM-->>Sentinel: { message, thought_process }
+        Sentinel-->>HB: { status: "secure", message, logs[], auditTime }
+    end
 ```
+
+---
+
+### 4. IDO Project Launch & AI Audit
+
+```mermaid
+sequenceDiagram
+    actor Creator
+    actor Investor
+    participant UI as Neural Launchpad
+    participant IDO as /api/ido
+    participant Auditor as auditorService
+    participant LLM as Gemini 2.5 Flash
+    participant DB as PostgreSQL
+    participant Invest as /api/ido/invest
+    participant Solana as Solana Devnet
+
+    Creator->>UI: Fill project form (name, desc, goal, category)
+    UI->>IDO: POST /api/ido { name, description, goalAmount, creatorAddress }
+    IDO->>DB: prisma.project.create({ aiScore: 0, status: "active" })
+    DB-->>IDO: Project record
+
+    IDO->>Auditor: auditProject(project)
+    Auditor->>LLM: Analyse name, description, category, goalAmount
+    Note over LLM: Score risk 0–100<br/>Write plain-English audit report
+    LLM-->>Auditor: { aiScore: 72, aiAudit: "Low-to-medium risk..." }
+    Auditor->>DB: UPDATE project SET aiScore, aiAudit
+    DB-->>Auditor: updated
+
+    IDO-->>UI: Project with AI score badge
+    UI-->>Creator: Project live on Launchpad
+
+    Investor->>UI: Browse projects, view AI risk score
+    Investor->>UI: Click "Invest 500 PUSD"
+    UI->>Invest: POST /api/ido/invest { projectId, amount, walletAddress }
+    Invest->>Solana: executePayment(investorWallet, amount)
+    Note over Solana: createATA idempotent<br/>Transfer PUSD from treasury<br/>sendAndConfirmTransaction
+    Solana-->>Invest: txHash
+    Invest->>DB: project.update({ raisedAmount: +500 })
+    Invest->>DB: investment.create({ amount, walletAddress, projectId })
+    DB-->>Invest: saved
+    Invest-->>UI: { success: true, txHash }
+    UI-->>Investor: Investment confirmed + Solscan link
+```
+
+---
 
 ### 5. Autonomous Heartbeat Cycle
 
+```mermaid
+sequenceDiagram
+    participant HB as POST /api/system/heartbeat
+    participant Stream as streamService
+    participant Rep as reputationService
+    participant Sentinel as sentinelService
+    participant Yield as yieldService
+    participant Solana as Solana RPC
+    participant DB as PostgreSQL
+
+    Note over HB: Triggered manually or by cron
+
+    HB->>Stream: updateAccruedTotals()
+    Stream->>DB: Update all active stream totalStreamed values
+    DB-->>Stream: done
+    Stream-->>HB: Payroll accrual complete
+
+    HB->>DB: agent.findMany()
+    DB-->>HB: agents[]
+
+    loop For each agent
+        HB->>Rep: calculateAgentReputation(agentId)
+        Rep->>DB: agent.findUnique (with transactions)
+        DB-->>Rep: agent + tx history
+        Rep->>Rep: score = efficiency base<br/>+ tasksCount bonus (max +15)<br/>− 25 if spent > budget<br/>rating = 3.5 + (score/100)×1.5
+        Rep->>DB: agent.update({ efficiency, rating, pnl })
+        DB-->>Rep: updated
+        Rep-->>HB: repScore
+    end
+
+    HB->>Sentinel: performSecurityAudit()
+    Sentinel-->>HB: { status: "secure" | "warning" | "emergency_lock" }
+
+    HB->>Solana: getPUSDBalance(treasuryAddress)
+    Solana-->>HB: balance (PUSD)
+
+    alt balance > 5000 PUSD
+        HB->>Yield: routeToYield(balance × 0.1)
+        Yield->>DB: transaction.create({ type: "yield_investment" })
+        DB-->>Yield: logged
+        Yield-->>HB: done
+    end
+
+    HB->>DB: transaction.aggregate({ _sum: amount })
+    DB-->>HB: totalVolume
+    HB->>DB: agent.count({ where: { status: "active" } })
+    DB-->>HB: activeAgents
+
+    HB-->>Caller: { success: true, security, metrics: { totalVolume, activeAgents } }
 ```
-POST /api/system/heartbeat
-        │
-        ├── Step 1: streamService.updateAccruedTotals()
-        │   Update all active stream balances (per-second math)
-        │
-        ├── Step 2: reputationService.calculateAgentReputation(agentId)
-        │   For each agent:
-        │     score  = agent.efficiency (base)
-        │     score += min(tasksCount × 0.5, 15)  (volume bonus)
-        │     score -= 25 if spent > budget        (discipline penalty)
-        │     rating = 3.5 + (score / 100) × 1.5  (1.0–5.0 stars)
-        │     → UPDATE agent SET efficiency, rating, pnl
-        │
-        ├── Step 3: sentinelService.performSecurityAudit()
-        │   Run full threat detection (see diagram above)
-        │
-        ├── Step 4: yieldService.routeToYield(balance × 0.1)
-        │   if treasury balance > 5000 PUSD:
-        │     → Record yield_investment transaction
-        │
-        └── Step 5: Aggregate protocol stats
-            → Return { success, security, metrics }
+
+---
+
+### 6. Agent-to-Agent Collaboration
+
+```mermaid
+sequenceDiagram
+    actor Operator
+    participant UI as Dashboard
+    participant Collab as /api/agents/collaborate
+    participant LLM as Gemini 2.5 Flash
+    participant Coord as coordinationService
+    participant DB as PostgreSQL
+
+    Operator->>UI: Request collaboration (fromAgent → toAgent, task, budget)
+    UI->>Collab: POST { fromAgentId, toAgentId, taskDescription, budget }
+
+    Collab->>DB: agentService.getAgentById(fromAgentId)
+    DB-->>Collab: fromAgent record
+    Collab->>DB: agentService.getAgentById(toAgentId)
+    DB-->>Collab: toAgent record
+
+    Collab->>LLM: fromAgent explains reasoning for collaboration request
+    Note over LLM: "I am Marketing AI. I need Finance AI<br/>to execute budget allocation for task X"
+    LLM-->>Collab: { message: AI reasoning narrative }
+
+    Collab->>Coord: requestCollaboration(fromId, toId, task, budget)
+    Coord->>DB: Log collaboration event as transaction
+    DB-->>Coord: saved
+    Coord-->>Collab: collaboration result
+
+    Collab-->>UI: { result, reasoning: AI narrative }
+    UI-->>Operator: Collaboration complete with AI explanation
 ```
 
 ---
@@ -479,6 +555,94 @@ Charts for agent P&L trends, efficiency distributions, task completion rates, an
 ---
 
 ## Database Schema
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    Agent {
+        String  id            PK
+        String  name
+        String  role
+        String  status
+        Float   budget
+        Float   spent
+        Int     tasksCount
+        Float   efficiency
+        Float   pnl
+        Float   rating
+        String  walletAddress
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Transaction {
+        String  id          PK
+        Float   amount
+        String  currency
+        String  type
+        String  description
+        String  status
+        String  txHash
+        String  agentId     FK
+        DateTime createdAt
+    }
+
+    Stream {
+        String  id            PK
+        String  recipientName
+        String  recipientRole
+        Float   ratePerSecond
+        Float   totalStreamed
+        String  status
+        String  walletAddress
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Policy {
+        String  id          PK
+        String  name
+        String  type
+        Float   value
+        String  description
+        Boolean isActive
+        String  agentId     FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Project {
+        String  id             PK
+        String  name
+        String  description
+        Float   goalAmount
+        Float   raisedAmount
+        String  status
+        String  creatorAddress
+        Int     aiScore
+        String  aiAudit
+        String  category
+        String  agentId        FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Investment {
+        String  id            PK
+        Float   amount
+        String  walletAddress
+        String  projectId     FK
+        DateTime createdAt
+    }
+
+    Agent ||--o{ Transaction : "records"
+    Agent ||--o{ Policy     : "governed by"
+    Agent ||--o{ Project    : "created"
+    Project ||--o{ Investment : "receives"
+```
+
+### Field Reference
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -767,35 +931,42 @@ Go to **Neural Core** and type any instruction:
 
 ## Security Model
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Defence-in-Depth                             │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    IN([User Command / AI Step]) --> L1
 
-Layer 1 — Policy Engine (Pre-execution Validation)
-  Every workflow step runs through policyService.validateAction()
-  before any DB write or blockchain call is made.
-  → Steps that violate active policies are denied and logged.
-  → The rest of the workflow continues unaffected.
+    subgraph L1["Layer 1 — Policy Engine"]
+        P1{policyService\nvalidateAction}
+        P1 -->|spending_limit violated| DENY1[/"Step DENIED\nlog reason"/]
+        P1 -->|global_lock active| DENY2[/"Step DENIED\nTreasury locked"/]
+        P1 -->|ALLOWED| L2
+    end
 
-Layer 2 — Risk Sentinel (Continuous Monitoring)
-  Every heartbeat cycle scans for anomalies:
-    - Velocity: > 5 transactions per minute → auto-lock
-    - Budget drain: agent spent > 80% → critical alert
-  Auto-lock creates a global_lock policy and a security_event
-  transaction — traceable in the Protocol Ledger.
+    subgraph L2["Layer 2 — Risk Sentinel"]
+        S1{Velocity check\ntx count > 5 per min?}
+        S1 -->|YES| LOCK["autoLockTreasury()\nCreate global_lock policy\nLog security_event tx"]
+        S1 -->|NO| S2{Budget drain?\nspent > 80% budget}
+        S2 -->|YES| ALERT["Flag: Critical Budget Alert\nAdd to audit logs"]
+        S2 -->|NO| L3
+        ALERT --> L3
+    end
 
-Layer 3 — On-Chain Guardrails
-  The authority keypair only holds PUSD and SOL for gas.
-  Agent wallets receive PUSD but cannot independently sign
-  outgoing transactions — all payments route through the
-  treasury authority, which is subject to policy checks.
+    subgraph L3["Layer 3 — Blockchain Guardrails"]
+        B1["Authority keypair signs\nAll payments route through\nTreasury authority only"]
+        B1 --> B2["createATA idempotent\nNew wallets provisioned\natomically — never fail"]
+        B2 --> EXEC([On-chain execution\nSolana Devnet])
+    end
 
-Layer 4 — Idempotent ATA Provisioning
-  createAssociatedTokenAccountIdempotentInstruction ensures
-  PUSD transfers to new wallets never fail due to a missing
-  token account. The ATA is created atomically in the same
-  transaction as the first transfer.
+    LOCK --> STOP([All future steps BLOCKED\nuntil policy manually removed])
+    DENY1 --> SKIP([Step skipped\nWorkflow continues])
+    DENY2 --> SKIP
+
+    style L1 fill:#1a1a2e,stroke:#6366f1,color:#e6edf3
+    style L2 fill:#1a1a2e,stroke:#f59e0b,color:#e6edf3
+    style L3 fill:#1a1a2e,stroke:#00e5cc,color:#e6edf3
+    style LOCK fill:#450a0a,stroke:#ef4444,color:#fca5a5
+    style STOP fill:#450a0a,stroke:#ef4444,color:#fca5a5
+    style EXEC fill:#052e16,stroke:#10b981,color:#a7f3d0
 ```
 
 ---
