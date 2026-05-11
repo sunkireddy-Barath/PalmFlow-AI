@@ -2,11 +2,23 @@
 
 import React, { useState } from 'react';
 import { StreamingCard } from '@/components/dashboard/StreamingCard';
-import { Plus, Users, CreditCard, History, Calendar, Download, ArrowUpRight } from 'lucide-react';
+import { CreateStreamModal } from '@/components/dashboard/CreateStreamModal';
+import { Plus, Users, CreditCard, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { useStreams } from '@/hooks/useStreams';
 import { Loader2 } from 'lucide-react';
+import { type Variants } from 'framer-motion';
+
+const container: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, damping: 28, stiffness: 120 } },
+};
 
 export default function PayrollPage() {
   const { data: streams, isLoading, toggleStream } = useStreams();
@@ -25,6 +37,7 @@ export default function PayrollPage() {
   const activeCount = streams?.filter((s: any) => s.status === 'active').length || 0;
 
   return (
+    <>
     <motion.div
       variants={container}
       initial="hidden"
@@ -106,19 +119,25 @@ export default function PayrollPage() {
           <h2 className="text-base font-semibold text-white">Analytics</h2>
 
           {/* Budget Utilization */}
-          <div className="neural-card p-5 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="label-sm">Operational Budget</span>
-              <span className="text-sm font-medium text-white">12%</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
-              <div className="h-full rounded-full w-[12%]" style={{ background: 'linear-gradient(90deg, #00e5cc, #6366f1)' }} />
-            </div>
-            <div className="flex justify-between text-xs text-white/30">
-              <span>${totalStreamed.toFixed(0)} spent</span>
-              <span>$50,000 allocated</span>
-            </div>
-          </div>
+          {(() => {
+            const totalAllocated = streams?.reduce((acc: number, s: any) => acc + (s.ratePerSecond * 2592000), 0) || 0;
+            const pct = totalAllocated > 0 ? Math.min((totalStreamed / totalAllocated) * 100, 100) : 0;
+            return (
+              <div className="neural-card p-5 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="label-sm">Streams Budget Utilization</span>
+                  <span className="text-sm font-medium text-white">{pct.toFixed(1)}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #00e5cc, #6366f1)' }} />
+                </div>
+                <div className="flex justify-between text-xs text-white/30">
+                  <span>${totalStreamed.toFixed(2)} streamed</span>
+                  <span>{streams?.length || 0} active streams</span>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Info cards */}
           <div className="space-y-3">
@@ -149,7 +168,7 @@ export default function PayrollPage() {
         </motion.div>
       </div>
     </motion.div>
-  );
-}
+    <CreateStreamModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
+    </>
   );
 }

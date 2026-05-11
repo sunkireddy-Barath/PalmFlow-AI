@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Cpu, Activity, Zap, Target } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Cpu, Activity, Zap, Target, CheckCircle2 } from 'lucide-react';
 
 interface AgentCardProps {
   name: string;
@@ -17,10 +18,12 @@ interface AgentCardProps {
   agentId: string;
 }
 
-export function AgentCard({ 
-  name, role, status, budget, spent, efficiency, pnl = 0, rating = 5.0, agentId 
+export function AgentCard({
+  name, role, status, budget, spent, efficiency, pnl = 0, rating = 5.0, agentId
 }: AgentCardProps) {
+  const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = React.useState(false);
+  const [isSynced, setIsSynced] = React.useState(false);
   const usagePct =
     (parseFloat(spent.replace(/,/g, '')) / parseFloat(budget.replace(/,/g, ''))) * 100;
   const isActive = status === 'active';
@@ -35,8 +38,9 @@ export function AgentCard({
         body: JSON.stringify({ agentId }),
       });
       if (res.ok) {
-        // Success - we could trigger a global refetch here if needed
-        window.location.reload(); // Simple way to refresh data for now
+        queryClient.invalidateQueries({ queryKey: ['agents'] });
+        setIsSynced(true);
+        setTimeout(() => setIsSynced(false), 2000);
       }
     } catch (err) {
       console.error('Failed to sync agent:', err);
@@ -162,6 +166,11 @@ export function AgentCard({
           <>
             <Zap className="w-4 h-4 animate-pulse text-accent-cyan" />
             Syncing...
+          </>
+        ) : isSynced ? (
+          <>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="text-emerald-400">Synced</span>
           </>
         ) : (
           'Sync Agent'

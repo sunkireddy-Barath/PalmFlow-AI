@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, LayoutDashboard, Users, ShoppingCart, Shield, MessageSquare, Globe, Cpu } from 'lucide-react';
+import { Zap, LayoutDashboard, Users, ShoppingCart, Shield, MessageSquare, Cpu, TrendingUp, BarChart3 } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -13,6 +13,8 @@ const navItems = [
   { name: 'Agents', href: '/agents', icon: Users },
   { name: 'Market', href: '/marketplace', icon: ShoppingCart },
   { name: 'Policy', href: '/policy', icon: Shield },
+  { name: 'Yield', href: '/yield', icon: TrendingUp },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 export const Navbar = () => {

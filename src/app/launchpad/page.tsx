@@ -21,11 +21,17 @@ import {
 } from 'lucide-react';
 import { useIdo } from '@/hooks/useIdo';
 import { useTreasury } from '@/hooks/useTreasury';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
 
-export default function LaunchpadPage() {
+function LaunchpadContent() {
   const { projects, invest, createProject } = useIdo();
   const { data: treasury } = useTreasury();
+  const { publicKey } = useWallet();
+  const searchParams = useSearchParams();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
   const [notification, setNotification] = useState<string | null>(null);
   
   // Form state
@@ -36,13 +42,19 @@ export default function LaunchpadPage() {
     category: 'DeFi'
   });
 
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreateModal(true);
+    }
+  }, [searchParams]);
+
   const handleInvest = async (projectId: string, amount: number) => {
     try {
       setNotification('Initializing Neural Investment...');
       await invest.mutateAsync({
         projectId,
         amount,
-        walletAddress: 'Neural-User-01' // Placeholder for actual wallet logic
+        walletAddress: publicKey?.toBase58() ?? 'anonymous'
       });
       setNotification('Investment Successful! Project liquidity updated.');
     } catch (err: any) {
@@ -58,7 +70,7 @@ export default function LaunchpadPage() {
       setNotification('Deploying Project to Blockchain...');
       await createProject.mutateAsync({
         ...newProject,
-        creatorAddress: 'Neural-User-01'
+        creatorAddress: publicKey?.toBase58() ?? 'anonymous'
       });
       setNotification('Project Launched! Neural Audit initiated.');
       setShowCreateModal(false);
@@ -176,7 +188,10 @@ export default function LaunchpadPage() {
                 >
                   {project.status === 'funded' ? 'Target Reached' : 'Invest 100 PUSD'}
                 </button>
-                <button className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-white transition-colors">
+                <button 
+                  onClick={() => setSelectedProject(project)}
+                  className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-white transition-colors"
+                >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -289,6 +304,126 @@ export default function LaunchpadPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Project Detail Modal */}
+      <AnimatePresence>
+        {selectedProject && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProject(null)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300]"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl z-[301] p-4"
+            >
+              <div className="bg-neutral-900 border border-white/10 rounded-3xl p-8 space-y-8 overflow-hidden relative shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="px-2.5 py-1 rounded-lg bg-neutral-950 border border-neutral-800 text-[9px] font-bold text-neutral-500 uppercase tracking-widest w-fit">
+                      {selectedProject.category}
+                    </div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">{selectedProject.name}</h2>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedProject(null)}
+                    className="p-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-colors"
+                  >
+                    <Plus className="w-6 h-6 rotate-45" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Project Vision</h4>
+                      <p className="text-sm text-neutral-300 leading-relaxed">
+                        {selectedProject.description}
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 p-5 rounded-2xl bg-neutral-950 border border-white/5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Funding Progress</span>
+                        <span className="text-xs font-bold text-accent-cyan">
+                          {Math.round((selectedProject.raisedAmount / selectedProject.goalAmount) * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-neutral-900 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((selectedProject.raisedAmount / selectedProject.goalAmount) * 100, 100)}%` }}
+                          className="h-full bg-accent-cyan"
+                        />
+                      </div>
+                      <div className="flex justify-between text-[10px] font-bold text-neutral-600">
+                        <span>{selectedProject.raisedAmount.toLocaleString()} PUSD</span>
+                        <span>GOAL: {selectedProject.goalAmount.toLocaleString()} PUSD</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="p-6 rounded-2xl bg-accent-cyan/[0.03] border border-accent-cyan/10 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-accent-cyan" />
+                        <h4 className="text-[10px] font-bold text-accent-cyan uppercase tracking-widest">Neural Audit Result</h4>
+                      </div>
+                      
+                      {selectedProject.aiScore > 0 ? (
+                        <div className="space-y-4">
+                          <div className="flex items-end gap-2">
+                            <span className="text-4xl font-bold text-white">{selectedProject.aiScore}</span>
+                            <span className="text-xs font-medium text-neutral-500 mb-1">/ 100 Trust Score</span>
+                          </div>
+                          <p className="text-xs text-neutral-400 leading-relaxed italic">
+                            "{selectedProject.aiAudit || "Audit report is being compiled by Risk Sentinel..."}"
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center py-6 gap-3">
+                          <Loader2 className="w-6 h-6 text-neutral-600 animate-spin" />
+                          <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest text-center">
+                            Risk Sentinel analyzing<br/>neural patterns...
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        handleInvest(selectedProject.id, 100);
+                        setSelectedProject(null);
+                      }}
+                      disabled={selectedProject.status !== 'active'}
+                      className="w-full py-4 rounded-xl bg-white text-black font-bold text-[10px] uppercase tracking-widest hover:scale-[1.01] transition-all disabled:opacity-30"
+                    >
+                      Invest 100 PUSD Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+export default function LaunchpadPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white/20 animate-spin" />
+      </div>
+    }>
+      <LaunchpadContent />
+    </Suspense>
   );
 }

@@ -30,14 +30,7 @@ export const sentinelService = {
       }
     }
 
-    // 3. Simulated "Neural Pulse" check
-    const isNeuralCoreStable = Math.random() > 0.01; // 99% stability simulation
-    if (!isNeuralCoreStable) {
-      logs.push('Neural Core instability detected in H100 cluster.');
-      return { status: 'warning', reason: 'System instability.', logs };
-    }
-
-    return { 
+    return {
       status: 'secure', 
       message: 'All systems nominal.',
       auditTime: new Date().toISOString(),

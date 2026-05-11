@@ -3,10 +3,10 @@ import { policyService } from '@/server/services/policy.service';
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const policy = await policyService.togglePolicy(id);
     return NextResponse.json(policy);
   } catch (error) {

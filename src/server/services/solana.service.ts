@@ -6,10 +6,11 @@ import {
   Transaction,
   sendAndConfirmTransaction 
 } from '@solana/web3.js';
-import { 
-  getAccount, 
-  getAssociatedTokenAddress, 
+import {
+  getAccount,
+  getAssociatedTokenAddress,
   createTransferInstruction,
+  createAssociatedTokenAccountIdempotentInstruction,
   getMint
 } from '@solana/spl-token';
 
@@ -98,6 +99,12 @@ export const solanaService = {
       const amountInBaseUnits = BigInt(Math.floor(amount * Math.pow(10, mintInfo.decimals)));
 
       const transaction = new Transaction().add(
+        createAssociatedTokenAccountIdempotentInstruction(
+          authority.publicKey,
+          toAta,
+          recipient,
+          PUSD_MINT
+        ),
         createTransferInstruction(
           fromAta,
           toAta,

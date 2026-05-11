@@ -13,7 +13,10 @@ import {
   Cpu,
   History,
   CreditCard,
-  Rocket
+  Rocket,
+  TrendingUp,
+  Award,
+  BarChart3
 } from 'lucide-react';
 
 const navItems = [
@@ -25,6 +28,9 @@ const navItems = [
   { name: 'Payroll', href: '/payroll', icon: CreditCard },
   { name: 'Laws', href: '/policy', icon: Shield },
   { name: 'Ledger', href: '/history', icon: History },
+  { name: 'Yield', href: '/yield', icon: TrendingUp },
+  { name: 'Repute', href: '/reputation', icon: Award },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 export const BottomDock = () => {
@@ -46,14 +52,14 @@ export const BottomDock = () => {
         }}
       >
         {/* Nav Items */}
-        <nav className="flex items-center gap-0.5">
+        <nav className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide max-w-[calc(100vw-140px)]">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 group"
+                className="relative flex items-center gap-1.5 px-3 py-2.5 rounded-xl transition-all duration-300 group shrink-0"
               >
                 {isActive && (
                   <motion.div
@@ -70,7 +76,7 @@ export const BottomDock = () => {
                 />
                 <span
                   className={`text-sm font-medium relative z-10 transition-colors duration-300 ${
-                    isActive ? 'text-white' : 'text-white/30 group-hover:text-white/60'
+                    isActive ? 'text-white' : 'hidden sm:block text-white/30 group-hover:text-white/60'
                   }`}
                 >
                   {item.name}

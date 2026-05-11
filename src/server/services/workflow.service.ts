@@ -44,7 +44,6 @@ export const workflowService = {
               name: step.data.name,
               role: step.data.role,
               budget: parseFloat(step.data.budget),
-              walletAddress
             });
             
             // Fund the agent

@@ -43,7 +43,7 @@ export function useStreams() {
   return {
     ...query,
     toggleStream: toggleMutation.mutate,
-    createStream: createMutation.mutate,
+    createStream: createMutation.mutateAsync,
     isProcessing: toggleMutation.isPending || createMutation.isPending,
   };
 }

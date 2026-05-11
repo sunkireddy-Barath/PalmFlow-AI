@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
 import { AgentCard } from '@/components/dashboard/AgentCard';
 import { TreasuryChart } from '@/components/dashboard/TreasuryChart';
@@ -13,6 +14,7 @@ import {
   Wallet, Activity, BarChart3, Cpu, Plus, Zap,
   ArrowUpRight, Search, Globe, TrendingUp, ShieldCheck, Brain, Loader2
 } from 'lucide-react';
+import { useState } from 'react';
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -25,6 +27,7 @@ const item: Variants = {
 };
 
 export const DashboardMode = () => {
+  const [search, setSearch] = useState('');
   const { data: agents } = useAgents();
   const { data: treasury } = useTreasury();
   const { data: neuralInsights, isLoading: insightsLoading } = useInsights();
@@ -51,7 +54,7 @@ export const DashboardMode = () => {
     },
     {
       label: 'Protocol Yield',
-      value: '$4,152',
+      value: treasury ? `$${(treasury.balance * 0.142 / 12).toFixed(0)}` : '$—',
       icon: TrendingUp,
       color: '#6366f1',
       trend: '+8.1%',
@@ -95,6 +98,8 @@ export const DashboardMode = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
             <input
               type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search nodes..."
               className="pl-10 pr-4 py-2.5 rounded-xl text-sm font-normal text-white placeholder:text-white/25 focus:outline-none transition-all w-64"
               style={{
@@ -103,10 +108,12 @@ export const DashboardMode = () => {
               }}
             />
           </div>
-          <button className="btn-primary">
-            <Plus className="w-4 h-4" />
-            Deploy Agent
-          </button>
+          <Link href="/launchpad?create=true">
+            <button className="btn-primary">
+              <Plus className="w-4 h-4" />
+              Deploy Agent
+            </button>
+          </Link>
         </div>
       </motion.header>
 
@@ -240,14 +247,17 @@ export const DashboardMode = () => {
               <h2 className="text-lg font-semibold text-white tracking-tight">Active Workforce</h2>
               <p className="text-xs text-white/40 mt-0.5">Monitoring {agents?.length || 0} autonomous agents</p>
             </div>
-            <button className="flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white transition-colors group">
+            <Link href="/agents" className="flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white transition-colors group">
               View all
               <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </button>
+            </Link>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {agents?.slice(0, 3).map((agent: any) => (
+            {(search
+              ? agents?.filter((a: any) => a.name.toLowerCase().includes(search.toLowerCase()))
+              : agents?.slice(0, 3)
+            )?.map((agent: any) => (
               <AgentCard
                 key={agent.id}
                 name={agent.name}

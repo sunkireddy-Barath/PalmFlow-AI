@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Keypair } from '@solana/web3.js';
 import { streamService } from '@/server/services/stream.service';
 import { sentinelService } from '@/server/services/sentinel.service';
 import { reputationService } from '@/server/services/reputation.service';
@@ -23,8 +24,9 @@ export async function POST() {
     const securityStatus = await sentinelService.performSecurityAudit();
     
     // 4. Yield Optimization (Auto-route idle funds if balance > 5000)
-    // For demo: if balance is high, move 10% to yield vault
-    const treasury = await solanaService.getPUSDBalance(process.env.NEXT_PUBLIC_TREASURY_ADDRESS!);
+    const authoritySecret = JSON.parse(process.env.PUSD_AUTHORITY_KEY!);
+    const authority = Keypair.fromSecretKey(Uint8Array.from(authoritySecret));
+    const treasury = await solanaService.getPUSDBalance(authority.publicKey.toBase58());
     if (treasury > 5000) {
       await yieldService.routeToYield(treasury * 0.1);
     }

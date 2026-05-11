@@ -32,6 +32,7 @@ export const policyService = {
    * Validate an action against active policies
    * Returns { allowed: boolean, reason?: string }
    */
+  async validateAction(type: string, amount: number, agentId?: string) {
     // 0. Check for GLOBAL LOCK
     const globalLock = await prisma.policy.findFirst({
       where: { type: 'global_lock', isActive: true }

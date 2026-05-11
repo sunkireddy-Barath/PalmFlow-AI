@@ -130,7 +130,6 @@ export const idoService = {
       name: project.name,
       role: `Autonomous agent born from IDO: ${project.category}`,
       budget: project.raisedAmount,
-      walletAddress
     });
 
     // 3. Link agent to project

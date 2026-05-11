@@ -1,9 +1,24 @@
+"use client";
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePolicies } from '@/hooks/usePolicies';
-import { Loader2 } from 'lucide-react';
+import { CreatePolicyModal } from '@/components/dashboard/CreatePolicyModal';
+import {
+  Loader2,
+  Plus,
+  ShieldCheck,
+  Lock,
+  AlertTriangle,
+  TrendingUp,
+  Info,
+  CheckCircle2
+} from 'lucide-react';
 
 export default function PolicyPage() {
   const { data: policies, isLoading, togglePolicy, isToggling } = usePolicies();
   const [notification, setNotification] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const handleToggle = (policy: any) => {
     togglePolicy(policy.id);
@@ -22,6 +37,7 @@ export default function PolicyPage() {
   }
 
   return (
+    <>
     <div className="max-w-7xl mx-auto space-y-12 pb-24 pt-10 px-6">
       <AnimatePresence>
         {notification && (
@@ -57,8 +73,8 @@ export default function PolicyPage() {
             Configure autonomous financial guardrails. Our policy engine validates every request cryptographically before execution.
           </p>
         </div>
-        <button 
-          onClick={() => setNotification('Policy creation portal opening...')}
+        <button
+          onClick={() => setShowCreate(true)}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
@@ -148,5 +164,8 @@ export default function PolicyPage() {
         </div>
       </div>
     </div>
+
+    <CreatePolicyModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
+    </>
   );
 }

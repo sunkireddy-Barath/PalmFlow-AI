@@ -16,15 +16,19 @@ export function PortfolioView() {
     );
   }
 
+  const PUSD_MINT = process.env.NEXT_PUBLIC_PUSD_MINT ?? '';
+  const tokens: any[] = portfolio?.tokens ?? [];
   const assets = [
-    { symbol: 'SOL', name: 'Solana', amount: portfolio?.sol || 0, color: '#9945FF' },
-    { symbol: 'PUSD', name: 'PalmFlow USD', amount: portfolio?.tokens?.find((t: any) => t.mint === process.env.NEXT_PUBLIC_PUSD_MINT)?.amount || 0, color: '#00e5cc' },
-    ...portfolio?.tokens?.filter((t: any) => t.mint !== process.env.NEXT_PUBLIC_PUSD_MINT).map((t: any) => ({
-      symbol: t.mint.slice(0, 4).toUpperCase(),
-      name: 'Unknown Token',
-      amount: t.amount,
-      color: '#6366f1'
-    }))
+    { symbol: 'SOL', name: 'Solana', amount: portfolio?.sol ?? 0, color: '#9945FF' },
+    { symbol: 'PUSD', name: 'PalmFlow USD', amount: tokens.find((t) => t.mint === PUSD_MINT)?.amount ?? 0, color: '#00e5cc' },
+    ...tokens
+      .filter((t) => t.mint !== PUSD_MINT)
+      .map((t) => ({
+        symbol: typeof t.mint === 'string' && t.mint.length >= 4 ? t.mint.slice(0, 4).toUpperCase() : '???',
+        name: 'Unknown Token',
+        amount: t.amount ?? 0,
+        color: '#6366f1',
+      })),
   ].slice(0, 4);
 
   return (

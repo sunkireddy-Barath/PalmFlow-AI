@@ -25,9 +25,26 @@ export function usePolicies() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: async (data: { name: string; type: string; value: number; description: string }) => {
+      const res = await fetch('/api/policies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Failed to create policy');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['policies'] });
+    },
+  });
+
   return {
     ...query,
     togglePolicy: toggleMutation.mutate,
     isToggling: toggleMutation.isPending,
+    createPolicy: createMutation.mutateAsync,
+    isCreating: createMutation.isPending,
   };
 }

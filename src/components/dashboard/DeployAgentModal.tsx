@@ -23,10 +23,12 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
   const [selectedRole, setSelectedRole] = useState('');
   const [budget, setBudget] = useState('1000');
   const [isDeploying, setIsDeploying] = useState(false);
+  const [deployError, setDeployError] = useState('');
   const queryClient = useQueryClient();
 
   const handleDeploy = async () => {
     setIsDeploying(true);
+    setDeployError('');
     try {
       const res = await fetch('/api/agents', {
         method: 'POST',
@@ -40,10 +42,13 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
 
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: ['agents'] });
-        setStep(3); // Success step
+        setStep(3);
+      } else {
+        const data = await res.json();
+        setDeployError(data.error || 'Deployment failed. Please try again.');
       }
     } catch (error) {
-      console.error('Deployment failed:', error);
+      setDeployError('Network error. Check your connection and try again.');
     } finally {
       setIsDeploying(false);
     }
@@ -54,6 +59,7 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
     setName('');
     setSelectedRole('');
     setBudget('1000');
+    setDeployError('');
     onClose();
   };
 
@@ -165,9 +171,14 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
                     </p>
                   </div>
 
+                  {deployError && (
+                    <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+                      {deployError}
+                    </div>
+                  )}
                   <div className="flex gap-4">
                     <button onClick={() => setStep(1)} className="btn-secondary flex-1 justify-center">Back</button>
-                    <button 
+                    <button
                       onClick={handleDeploy}
                       disabled={isDeploying}
                       className="btn-primary flex-[2] justify-center"
@@ -198,7 +209,7 @@ export const DeployAgentModal = ({ isOpen, onClose }: DeployAgentModalProps) => 
                   <div className="space-y-3">
                     <h3 className="text-2xl font-semibold text-white tracking-tight leading-none">Agent Deployed</h3>
                     <p className="text-neutral-500 text-sm font-medium leading-relaxed max-w-[300px] mx-auto">
-                      Neural identity successfully injected. The autonomous wallet is now live on <span className="text-white font-black uppercase">Mainnet-Beta</span>.
+                      Neural identity successfully injected. The autonomous wallet is now live on <span className="text-white font-black uppercase">Solana Devnet</span>.
                     </p>
                   </div>
                   <button 

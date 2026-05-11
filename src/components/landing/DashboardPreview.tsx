@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { HolographicCard } from '@/components/ui/HolographicCard';
 import { CinematicButton } from '@/components/ui/CinematicButton';
-import { Activity, Wallet, Cpu, BarChart3, ArrowUpRight, Zap, Globe, Command, MessageSquare } from 'lucide-react';
+import { Activity, Wallet, Cpu, BarChart3, ArrowUpRight, Zap, Globe, Command, MessageSquare, Lock } from 'lucide-react';
 
 export const DashboardPreview = () => {
   return (
@@ -162,4 +162,3 @@ export const DashboardPreview = () => {
   );
 };
 
-import { Lock } from 'lucide-react';

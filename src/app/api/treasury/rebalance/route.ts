@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: `Successfully routed ${amount} PUSD to Jito Yield Vault.`,
-      txHash: result.txHash
+      txHash: null
     });
   } catch (error) {
     console.error('Rebalance Error:', error);

@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 import { BottomDock } from "@/components/layout/BottomDock";
 import { TopHeader } from "@/components/layout/TopHeader";
 import { BackgroundSystem } from "@/components/ui/BackgroundSystem";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 export default function RootLayout({
   children,
@@ -40,6 +41,7 @@ export default function RootLayout({
           <WalletContextProvider>
             <BlockchainProvider>
               <BackgroundSystem />
+              <ToastProvider />
               <TopHeader />
               <main className="relative z-10 min-h-screen pt-20 px-6">
                 {children}

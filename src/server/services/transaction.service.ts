@@ -14,6 +14,7 @@ export const transactionService = {
     description: string;
     agentId?: string;
     txHash?: string;
+    status?: string;
   }) {
     // If agentId is provided, update agent's spent amount
     if (data.agentId) {
@@ -28,7 +29,7 @@ export const transactionService = {
     return await prisma.transaction.create({
       data: {
         ...data,
-        status: 'completed',
+        status: data.status || 'completed',
       },
     });
   },

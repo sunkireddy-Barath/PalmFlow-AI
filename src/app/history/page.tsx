@@ -15,10 +15,41 @@ import {
 
 export default function HistoryPage() {
   const { data: agents, isLoading } = useAgents();
+  const [search, setSearch] = React.useState('');
 
-  const allTransactions = agents?.flatMap((a: any) => 
+  const exportCSV = () => {
+    const rows = [['Event', 'Agent', 'Type', 'Amount (PUSD)', 'Date', 'Tx Hash']];
+    filtered.forEach((tx: any) => {
+      rows.push([
+        `"${tx.description?.replace(/"/g, '""') ?? ''}"`,
+        tx.agentName ?? '',
+        tx.type ?? '',
+        tx.amount?.toString() ?? '0',
+        new Date(tx.createdAt).toLocaleString(),
+        tx.txHash ?? 'Internal',
+      ]);
+    });
+    const csv = rows.map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `palmflow-history-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const allTransactions = agents?.flatMap((a: any) =>
     a.transactions.map((tx: any) => ({ ...tx, agentName: a.name }))
   ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || [];
+
+  const filtered = search
+    ? allTransactions.filter((tx: any) =>
+        tx.description?.toLowerCase().includes(search.toLowerCase()) ||
+        tx.agentName?.toLowerCase().includes(search.toLowerCase()) ||
+        tx.type?.toLowerCase().includes(search.toLowerCase())
+      )
+    : allTransactions;
 
   if (isLoading) {
     return (
@@ -49,13 +80,19 @@ export default function HistoryPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-white/40 hover:text-white transition-colors">
+          <button
+            onClick={exportCSV}
+            className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-white/40 hover:text-white transition-colors"
+            title="Export as CSV"
+          >
             <Download className="w-4 h-4" />
           </button>
           <div className="relative group min-w-[240px]">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-white transition-colors" />
-            <input 
-              type="text" 
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search history..."
               className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-12 py-3 text-sm text-white focus:outline-none focus:border-white/20 transition-all"
             />
@@ -77,7 +114,7 @@ export default function HistoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
-              {allTransactions.map((tx: any, i: number) => (
+              {filtered.map((tx: any, i: number) => (
                 <tr key={i} className="group hover:bg-white/[0.01] transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
@@ -128,7 +165,7 @@ export default function HistoryPage() {
                   </td>
                 </tr>
               ))}
-              {allTransactions.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-20 text-center">
                     <History className="w-10 h-10 text-white/5 mx-auto mb-4" />

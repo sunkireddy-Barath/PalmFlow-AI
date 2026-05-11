@@ -11,6 +11,7 @@ export default function AgentsPage() {
   const { data: agents, isLoading, error } = useAgents();
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const showNotification = (message: string) => {
     setNotification(message);
@@ -85,9 +86,11 @@ export default function AgentsPage() {
         <div className="flex items-center gap-4">
           <div className="relative group hidden sm:block">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 group-focus-within:text-white transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search matrix..." 
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search matrix..."
               className="pl-12 pr-6 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-white/25 transition-all w-56 placeholder:text-white/20"
             />
           </div>
@@ -103,7 +106,10 @@ export default function AgentsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
-          {agents?.map((agent: any, i: number) => (
+          {(search
+            ? agents?.filter((a: any) => a.name.toLowerCase().includes(search.toLowerCase()) || a.role.toLowerCase().includes(search.toLowerCase()))
+            : agents
+          )?.map((agent: any, i: number) => (
             <motion.div
               key={agent.id}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
