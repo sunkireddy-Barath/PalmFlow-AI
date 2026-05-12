@@ -14,8 +14,6 @@ export const TopHeader = () => {
     setMounted(true);
   }, []);
 
-  if (pathname === '/') return null;
-
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] h-16 px-8 flex items-center justify-between neural-glass">
       {/* Logo */}

@@ -1,13 +1,15 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Shield, Cpu, Globe, Zap } from 'lucide-react';
+import { Shield, Cpu, Globe, Zap, Wallet } from 'lucide-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 export const Hero = () => {
+  const { setVisible } = useWalletModal();
+
   return (
     <section className="relative pt-28 pb-24 overflow-hidden">
-      {/* Background glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none -z-10 animate-pulse-glow"
         style={{ background: 'radial-gradient(circle, rgba(0,229,204,0.07) 0%, transparent 65%)' }}
@@ -30,7 +32,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-4xl md:text-5xl font-semibold text-white tracking-tight leading-[1.1] mb-6"
+          className="text-4xl md:text-6xl font-semibold text-white tracking-tight leading-[1.1] mb-6"
         >
           The Future of{' '}
           <span className="text-gradient-cyan">Autonomous</span>
@@ -42,28 +44,27 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-sm text-white/45 font-normal max-w-lg mx-auto leading-relaxed mb-10"
+          className="text-base text-white/45 font-normal max-w-xl mx-auto leading-relaxed mb-10"
         >
           PalmFlow AI is the world's first neural operating system for autonomous treasury
-          management and cross-border financial operations on Solana.
+          management, payroll, cross-border payments, and DeFi yield — all powered by PUSD on Solana.
         </motion.p>
 
-        {/* CTAs */}
+        {/* Connect Wallet CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-20"
+          className="flex flex-col items-center gap-3 mb-20"
         >
-          <a href="/dashboard">
-            <button className="btn-primary">
-              Initialize Protocol
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </a>
-          <button className="btn-outline">
-            Read Documentation
+          <button
+            onClick={() => setVisible(true)}
+            className="btn-primary text-sm px-8 py-3.5 flex items-center gap-2.5"
+          >
+            <Wallet className="w-4 h-4" />
+            Connect Wallet to Launch
           </button>
+          <p className="text-xs text-white/25">Supports Phantom, Solflare, Backpack and more</p>
         </motion.div>
 
         {/* Stats row */}
@@ -81,7 +82,7 @@ export const Hero = () => {
             { label: 'Success Rate', value: '99.9%', icon: Shield },
           ].map((s, i) => (
             <div key={i} className="text-center space-y-1.5">
-              <div className="text-xl font-semibold text-white tracking-tight tabular-nums">{s.value}</div>
+              <div className="text-2xl font-semibold text-white tracking-tight tabular-nums">{s.value}</div>
               <div className="label-xs">{s.label}</div>
             </div>
           ))}
