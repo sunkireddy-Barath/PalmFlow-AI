@@ -33,7 +33,11 @@ export default function NeuralChatPage() {
         body: JSON.stringify({ prompt: userMessage }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: 'ai', content: data.message || 'Workflow executed successfully.' }]);
+      if (!res.ok) {
+        setMessages(prev => [...prev, { role: 'ai', content: 'Neural core error. Please try again.' }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'ai', content: data.message || 'Command processed.' }]);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'ai', content: 'Neural path disrupted. Re-establishing link...' }]);
     } finally {

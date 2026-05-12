@@ -90,12 +90,19 @@ Action step types (only populate steps[] when user wants to execute an action):
 - set_policy: { name, type, value, description }
 - payment: { recipient, amount, description }
 
-User question: "${prompt}"`;
+User question: ${JSON.stringify(prompt)}`;
 
     const result = await model.generateContent(systemPrompt);
     const text = result.response.text().trim();
     const clean = text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
-    const aiResponse = JSON.parse(clean);
+
+    let aiResponse: { message?: string; steps?: unknown[] };
+    try {
+      aiResponse = JSON.parse(clean);
+    } catch {
+      // Gemini returned non-JSON — surface the raw text as the message
+      aiResponse = { message: clean, steps: [] };
+    }
 
     const steps = Array.isArray(aiResponse.steps) ? aiResponse.steps : [];
 
