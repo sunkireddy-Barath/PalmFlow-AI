@@ -2,172 +2,275 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Terminal, Sparkles, BrainCircuit, Activity, Shield, Zap, Loader2, ChevronRight, Cpu, Network } from 'lucide-react';
+import {
+  Send, Sparkles, Zap, Loader2, Bot,
+  TrendingUp, Users, DollarSign, Activity
+} from 'lucide-react';
 
-export default function NeuralChatPage() {
-  const [messages, setMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([
-    { role: 'ai', content: 'Neural link established. I am the PalmFlow Core. How can I assist with your autonomous treasury today?' }
-  ]);
+type Message = { role: 'user' | 'ai'; content: string; ts: Date };
+
+const suggestions = [
+  { icon: DollarSign, label: 'What is the current treasury balance?' },
+  { icon: Users,      label: 'How many agents are active right now?' },
+  { icon: TrendingUp, label: 'Show me the latest PnL across all agents' },
+  { icon: Activity,   label: 'What are the recent transactions?' },
+];
+
+export default function ChatPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isProcessing]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isProcessing) return;
-
-    const userMessage = input;
+  const send = async (text: string) => {
+    const msg = text.trim();
+    if (!msg || isProcessing) return;
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { role: 'user', content: msg, ts: new Date() }]);
     setIsProcessing(true);
 
     try {
       const res = await fetch('/api/command/v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userMessage }),
+        body: JSON.stringify({ prompt: msg }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setMessages(prev => [...prev, { role: 'ai', content: 'Neural core error. Please try again.' }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'ai', content: data.message || 'Command processed.' }]);
-      }
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'ai', content: 'Neural path disrupted. Re-establishing link...' }]);
+      const reply = res.ok
+        ? (data.message || 'Command processed.')
+        : 'Neural core error — please try again.';
+      setMessages(prev => [...prev, { role: 'ai', content: reply, ts: new Date() }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'ai', content: 'Neural path disrupted. Re-establishing link...', ts: new Date() }]);
     } finally {
       setIsProcessing(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
-  return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col gap-8 pt-8 pb-32 px-6 relative z-10">
-      <div className="absolute inset-0 noise-bg pointer-events-none opacity-[0.03]" />
-      
-      {/* Immersive Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
-        <div className="flex items-center gap-5">
-          <div className="relative">
-            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-              <BrainCircuit className="w-7 h-7 text-black" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-emerald-500 border-4 border-black flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-white tracking-tight leading-none">Neural Core</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-white/35">Quantum-Leveled Intelligence</span>
-              <div className="h-px w-8 bg-neutral-800" />
-              <span className="text-xs text-emerald-500">Active</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex gap-3">
-          <div className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 flex items-center gap-3">
-            <Cpu className="w-4 h-4 text-neutral-600" />
-            <span className="text-xs text-white/40">H100 Node</span>
-          </div>
-          <div className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 flex items-center gap-3">
-            <Network className="w-4 h-4 text-neutral-600" />
-            <span className="text-xs text-white/40">v4.2.0</span>
-          </div>
-        </div>
-      </div>
+  const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send(input);
+    }
+  };
 
-      {/* Chat Container */}
-      <div className="flex-1 bento-card p-0 flex flex-col overflow-hidden relative group">
-        <div 
-          ref={scrollRef}
-          className="flex-1 p-8 overflow-y-auto space-y-10 custom-scrollbar scroll-smooth"
-        >
-          <AnimatePresence>
+  const isEmpty = messages.length === 0;
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-3xl mx-auto">
+
+      {/* ── Empty state ── */}
+      <AnimatePresence>
+        {isEmpty && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12, scale: 0.97 }}
+            transition={{ duration: 0.35 }}
+            className="flex-1 flex flex-col items-center justify-center gap-10 px-4 pb-12"
+          >
+            {/* Icon */}
+            <div className="flex flex-col items-center gap-5">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.15)]">
+                  <Sparkles className="w-8 h-8 text-black fill-current" />
+                </div>
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute inset-0 rounded-2xl bg-white/20 blur-xl -z-10"
+                />
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-white tracking-tight">PalmFlow Core</h2>
+                <p className="text-sm text-white/35 mt-1.5 font-normal">Ask anything about your autonomous treasury</p>
+              </div>
+            </div>
+
+            {/* Suggestion chips */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl">
+              {suggestions.map((s) => (
+                <button
+                  key={s.label}
+                  onClick={() => send(s.label)}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all duration-200 group"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)';
+                  }}
+                >
+                  <div className="w-8 h-8 rounded-xl bg-white/[0.05] flex items-center justify-center shrink-0 group-hover:bg-white/[0.09] transition-colors">
+                    <s.icon className="w-4 h-4 text-white/50 group-hover:text-white/70 transition-colors" />
+                  </div>
+                  <span className="text-[13px] font-medium text-white/50 group-hover:text-white/75 transition-colors leading-snug">
+                    {s.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Message list ── */}
+      {!isEmpty && (
+        <div className="flex-1 overflow-y-auto py-8 px-2 space-y-6 custom-scrollbar">
+          <AnimatePresence initial={false}>
             {messages.map((msg, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[80%] flex gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center border transition-all duration-500 ${
-                    msg.role === 'user' 
-                      ? 'bg-neutral-900 border-neutral-800 text-white group-hover:border-neutral-600' 
-                      : 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.1)]'
-                  }`}>
-                    {msg.role === 'user' ? <Zap className="w-5 h-5" /> : <Sparkles className="w-5 h-5 fill-current" />}
+                {msg.role === 'ai' && (
+                  <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_16px_rgba(255,255,255,0.12)]">
+                    <Bot className="w-4 h-4 text-black" />
                   </div>
-                  <div className={`group/msg relative px-6 py-4 rounded-3xl text-[15px] leading-relaxed font-medium transition-all duration-500 ${
-                    msg.role === 'user'
-                      ? 'bg-indigo-600 border border-indigo-500 text-white shadow-[0_10px_30px_-10px_rgba(79,70,229,0.3)]'
-                      : 'bg-white/[0.03] border border-white/5 text-neutral-300 hover:bg-white/[0.05] hover:border-white/10'
-                  }`}>
+                )}
+
+                <div className={`max-w-[78%] flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div
+                    className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed font-normal ${
+                      msg.role === 'user'
+                        ? 'text-white rounded-br-sm'
+                        : 'text-white/85 rounded-bl-sm'
+                    }`}
+                    style={
+                      msg.role === 'user'
+                        ? {
+                            background: 'rgba(99,102,241,0.85)',
+                            border: '1px solid rgba(99,102,241,0.6)',
+                            boxShadow: '0 4px 24px rgba(99,102,241,0.2)',
+                          }
+                        : {
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.07)',
+                          }
+                    }
+                  >
                     {msg.content}
-                    <div className={`absolute top-4 ${msg.role === 'user' ? '-right-2 border-l-indigo-600' : '-left-2 border-r-white/[0.03]'} border-8 border-transparent`} />
                   </div>
+                  <span className="text-[10px] text-white/20 px-1">
+                    {msg.ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
+
+                {msg.role === 'user' && (
+                  <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center shrink-0 mt-0.5">
+                    <Zap className="w-4 h-4 text-white/50" />
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
-          
-          {isProcessing && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex justify-start"
-            >
-              <div className="flex gap-6">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                  <Loader2 className="w-5 h-5 text-black animate-spin" />
-                </div>
-                <div className="bg-white/[0.03] border border-white/5 px-8 py-5 rounded-3xl flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" />
-                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.2s]" />
-                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.4s]" />
-                  </div>
-                  <span className="text-xs text-white/30">Processing...</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
 
-        {/* Premium Input Bar */}
-        <div className="p-8 bg-black/60 backdrop-blur-3xl border-t border-white/5 relative z-20">
-          <div className="relative flex items-center gap-4">
-            <div className="absolute left-6 text-neutral-600">
-              <Terminal className="w-5 h-5" />
-            </div>
-            <input 
-              type="text" 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Inject command into Neural Core..."
-              className="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-6 pl-14 pr-32 text-base text-white focus:outline-none focus:border-white/30 focus:bg-white/[0.04] transition-all font-medium placeholder:text-neutral-700"
-            />
-            <div className="absolute right-3 flex items-center gap-3">
-              <kbd className="hidden sm:inline-flex h-7 items-center gap-1 rounded border border-white/10 bg-white/5 px-2 font-mono text-[10px] font-black text-neutral-500">
-                <span className="text-xs">⌘</span>K
-              </kbd>
-              <button 
-                onClick={handleSend}
-                disabled={isProcessing}
-                className="px-5 py-2.5 rounded-xl bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all disabled:opacity-30 flex items-center gap-2 active:scale-95"
+          {/* Typing indicator */}
+          <AnimatePresence>
+            {isProcessing && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                className="flex gap-3 justify-start"
               >
-                Send <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(255,255,255,0.12)]">
+                  <Loader2 className="w-4 h-4 text-black animate-spin" />
+                </div>
+                <div
+                  className="px-5 py-4 rounded-2xl rounded-bl-sm flex items-center gap-2"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                  }}
+                >
+                  {[0, 0.18, 0.36].map((delay, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 0.7, repeat: Infinity, delay, ease: 'easeInOut' }}
+                      className="w-1.5 h-1.5 rounded-full bg-white/30"
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div ref={bottomRef} />
         </div>
+      )}
+
+      {/* ── Input bar ── */}
+      <div className="py-5 px-0">
+        <div
+          className="flex items-end gap-3 px-4 py-3 rounded-2xl"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.09)',
+            boxShadow: '0 0 0 1px rgba(255,255,255,0)',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
+          }}
+          onFocusCapture={e => {
+            (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.18)';
+            (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 3px rgba(255,255,255,0.04)';
+          }}
+          onBlurCapture={e => {
+            (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.09)';
+            (e.currentTarget as HTMLElement).style.boxShadow = '0 0 0 1px rgba(255,255,255,0)';
+          }}
+        >
+          <textarea
+            ref={inputRef}
+            rows={1}
+            value={input}
+            onChange={e => {
+              setInput(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px';
+            }}
+            onKeyDown={handleKey}
+            placeholder="Ask anything about your treasury…"
+            disabled={isProcessing}
+            className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/25 font-normal resize-none outline-none leading-relaxed py-1 min-h-[26px] max-h-[140px] overflow-y-auto custom-scrollbar disabled:opacity-50"
+          />
+          <button
+            onClick={() => send(input)}
+            disabled={!input.trim() || isProcessing}
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 disabled:opacity-25"
+            style={{ background: 'rgba(255,255,255,0.9)' }}
+            onMouseEnter={e => {
+              if (!isProcessing && input.trim()) {
+                (e.currentTarget as HTMLElement).style.background = '#fff';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(255,255,255,0.25)';
+              }
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.9)';
+              (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+            }}
+          >
+            <Send className="w-4 h-4 text-black" />
+          </button>
+        </div>
+        <p className="text-center text-[10px] text-white/15 mt-2.5 font-normal">
+          Press Enter to send · Shift+Enter for new line
+        </p>
       </div>
     </div>
   );
