@@ -63,7 +63,8 @@ export default function ChatPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-3xl mx-auto">
+    /* Fixed between TopHeader (64px) and BottomDock (~84px from bottom) */
+    <div className="fixed inset-x-0 top-16 bottom-[100px] flex flex-col max-w-3xl mx-auto px-6">
 
       {/* ── Empty state ── */}
       <AnimatePresence>
@@ -73,7 +74,7 @@ export default function ChatPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
             transition={{ duration: 0.35 }}
-            className="flex-1 flex flex-col items-center justify-center gap-10 px-4 pb-12"
+            className="flex-1 flex flex-col items-center justify-center gap-10 px-4"
           >
             {/* Icon */}
             <div className="flex flex-col items-center gap-5">
@@ -217,7 +218,7 @@ export default function ChatPage() {
       )}
 
       {/* ── Input bar ── */}
-      <div className="py-5 px-0">
+      <div className="pt-3 pb-2">
         <div
           className="flex items-end gap-3 px-4 py-3 rounded-2xl"
           style={{
