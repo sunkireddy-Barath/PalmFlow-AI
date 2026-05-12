@@ -27,6 +27,8 @@ export const BottomDock = () => {
   const pathname = usePathname();
   const [hovered, setHovered] = useState<string | null>(null);
 
+  if (pathname === '/') return null;
+
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
       <motion.div
