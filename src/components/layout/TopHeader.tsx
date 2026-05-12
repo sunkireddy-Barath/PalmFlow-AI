@@ -2,15 +2,19 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Zap } from 'lucide-react';
 
 export const TopHeader = () => {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (pathname === '/') return null;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] h-16 px-8 flex items-center justify-between neural-glass">
